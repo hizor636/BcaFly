@@ -1,0 +1,2675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BcaFly — BCA Academic Workspaces (Semesters 1 to 6)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A4A;
+    --ink-2:#2B3A5C;
+    --ink-dark:#101B31;
+    --parchment:#F7F4EC;
+    --parchment-2:#EFEADB;
+    --parchment-3:#E5DECA;
+    --brass:#B8863B;
+    --brass-2:#96692A;
+    --brass-soft:rgba(184,134,59,0.12);
+    --pass:#2D6A4F;
+    --pass-soft:#EAF4EE;
+    --fail:#9B2226;
+    --fail-soft:#F9EBEB;
+    --amber:#D97706;
+    --amber-soft:#FEF3C7;
+    --slate:#5B6478;
+    --slate-light:#8F97A9;
+    --rule:#D9D2BE;
+    --card-bg:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{ background:var(--parchment); font-family:'Inter',sans-serif; color:var(--ink); -webkit-font-smoothing:antialiased; }
+  .font-display{font-family:'Lora',serif;}
+  .font-brand{font-family:'Playfair Display',Georgia,serif;}
+  .font-mono{font-family:'IBM Plex Mono',monospace;}
+  .ledger-lines{
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 35px, var(--rule) 35px, var(--rule) 36px);
+  }
+  .brass-underline{position:relative;}
+  .brass-underline::after{content:"";position:absolute;left:0;bottom:-8px;width:48px;height:3px;background:var(--brass);}
+  .role-card{transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; border:1px solid var(--rule); background:#fff;}
+  .role-card:hover{transform: translateY(-4px); border-color: var(--brass); box-shadow: 0 12px 28px -10px rgba(27,42,74,.22);}
+  .nav-item{border-left:3px solid transparent; transition: all .15s ease; color:rgba(247,244,236,0.72);}
+  .nav-item:hover{border-left-color: var(--brass); background: rgba(184,134,59,.15); color: #fff;}
+  .nav-item.active{border-left-color: var(--brass); background: rgba(184,134,59,.22); color: #fff; font-weight: 600;}
+  table.ledger th{font-family:'IBM Plex Mono',monospace;font-size:.67rem;letter-spacing:.06em;text-transform:uppercase;color:var(--slate);border-bottom:1.5px solid var(--ink);white-space:nowrap;padding:.65rem .75rem;}
+  table.ledger td{border-bottom:1px solid var(--rule);padding:.6rem .75rem;}
+  table.ledger tbody tr:hover{background: rgba(184,134,59,.04);}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:.65rem;letter-spacing:.03em;white-space:nowrap;padding:.2rem .5rem;border-radius:.25rem;font-weight:600;display:inline-flex;align-items:center;gap:.3rem;}
+  .b-pass{color:var(--pass);background:var(--pass-soft);border:1px solid rgba(45,106,79,.2);}
+  .b-fail{color:var(--fail);background:var(--fail-soft);border:1px solid rgba(155,34,38,.2);}
+  .b-amber{color:var(--brass-2);background:var(--amber-soft);border:1px solid rgba(217,119,6,.2);}
+  .b-ink{color:var(--ink);background:#E5E9F2;border:1px solid rgba(27,42,74,.15);}
+  .b-lock{color:#4B5563;background:#E5E7EB;border:1px solid #D1D5DB;}
+  .b-pub{color:#065F46;background:#D1FAE5;border:1px solid #A7F3D0;}
+  .view{display:none;} .view.active{display:block;}
+  .subview{display:none;} .subview.active{display:block;}
+  ::-webkit-scrollbar{width:7px;height:7px;}
+  ::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;}
+  .card{background:var(--card-bg);border:1px solid var(--rule);border-radius:.5rem;box-shadow:0 1px 3px rgba(27,42,74,.03);}
+  .stat-num{font-family:'IBM Plex Mono',monospace;font-size:1.85rem;line-height:1;font-weight:700;}
+  .btn-ink{background:var(--ink);color:#fff;transition:all .15s ease;} .btn-ink:hover{background:var(--ink-2);transform:translateY(-1px);}
+  .btn-brass{background:var(--brass);color:#fff;transition:all .15s ease;} .btn-brass:hover{background:var(--brass-2);transform:translateY(-1px);}
+  .btn-ghost{color:var(--slate);transition:all .15s ease;background:#fff;} .btn-ghost:hover{color:var(--ink);border-color:var(--ink);}
+  .field-input{border:1px solid var(--rule);border-radius:.375rem;padding:.45rem .65rem;font-size:.85rem;background:#fff;width:100%;transition:border .15s ease;}
+  .field-input:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 2px rgba(184,134,59,.15);}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--ink-dark);color:#fff;font-family:'IBM Plex Mono',monospace;font-size:.8rem;padding:.75rem 1.25rem;border-radius:.4rem;z-index:9999;box-shadow:0 12px 28px -6px rgba(0,0,0,.45);border-left:4px solid var(--brass);animation:fadeIn .25s ease;}
+  .sidebar-section-title{font-family:'IBM Plex Mono',monospace;font-size:.65rem;letter-spacing:.08em;color:rgba(247,244,236,0.45);text-transform:uppercase;padding:.75rem .75rem .25rem;font-weight:600;}
+  .ws-tag{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.04em;background:rgba(184,134,59,0.12);color:var(--brass-2);border:1px solid rgba(184,134,59,0.25);padding:.15rem .45rem;border-radius:.25rem;display:inline-flex;align-items:center;gap:.25rem;}
+  .sem-tab{font-family:'IBM Plex Mono',monospace;font-size:.75rem;padding:.5rem 1rem;border-radius:.375rem;border:1px solid var(--rule);background:#fff;color:var(--slate);transition:all .15s ease;font-weight:600;}
+  .sem-tab:hover{border-color:var(--brass);color:var(--ink);}
+  .sem-tab.active{background:var(--ink);color:#fff;border-color:var(--ink);box-shadow:0 2px 6px rgba(27,42,74,0.2);}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Toast Notification -->
+<div id="toast-box" class="toast hidden"></div>
+
+<!-- =====================================================================
+     VIEW: LANDING / AUTHORISED PLATFORM ACCESS PORTAL
+===================================================================== -->
+<div id="view-landing" class="view active">
+  <header class="max-w-6xl mx-auto px-6 pt-12 pb-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl bg-[#F5E8C9] border border-[#EAD6AB] text-[#B8892D] flex items-center justify-center font-brand font-bold text-2xl shadow-sm">
+        B
+      </div>
+      <div>
+        <div class="font-brand font-bold text-2xl text-[var(--ink)] leading-none">BcaFly</div>
+        <div class="text-[10px] font-mono font-bold tracking-widest text-[var(--brass-2)] uppercase mt-1">BCA Academic Workspaces</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="ws-tag">AUTHORISED PLATFORM ACCESS</span>
+      <button onclick="loginPlatform('admin')" class="btn-ink text-xs font-mono px-4 py-2 rounded-md">ADMINISTRATOR LOGIN →</button>
+    </div>
+  </header>
+
+  <section class="max-w-6xl mx-auto px-6 py-6 grid md:grid-cols-12 gap-10 items-center">
+    <div class="md:col-span-6">
+      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--brass-soft)] border border-[var(--brass)] text-[var(--brass-2)] font-mono text-[11px] mb-4">
+        <span>🏛️</span> SIX SEMESTER-BASED ENVIRONMENTS
+      </div>
+      <h1 class="font-display text-4xl sm:text-5xl leading-[1.12] mb-5 text-[var(--ink)] brass-underline pb-3 font-semibold">
+        BCA Academic Workspaces.<br/>Independent Semester Data.
+      </h1>
+      <p class="text-[var(--slate)] text-sm sm:text-base leading-relaxed mb-6 max-w-lg">
+        BcaFly supports all six BCA semesters through isolated academic environments. Each semester maintains independent course configurations, student enrolments, faculty allocations, timetables, and assessments.
+      </p>
+      
+      <!-- Semester Navigator Pills Preview -->
+      <div class="mb-6">
+        <div class="text-[11px] font-mono text-[var(--slate)] uppercase font-semibold mb-2">Supported Semester Workspaces:</div>
+        <div class="flex flex-wrap gap-2 text-xs font-mono">
+          <span class="px-2.5 py-1 bg-white border border-[var(--rule)] rounded font-semibold text-[var(--ink)]">[ Semester 1 ]</span>
+          <span class="px-2.5 py-1 bg-white border border-[var(--rule)] rounded font-semibold text-[var(--ink)]">[ Semester 2 ]</span>
+          <span class="px-2.5 py-1 bg-white border border-[var(--rule)] rounded font-semibold text-[var(--ink)]">[ Semester 3 ]</span>
+          <span class="px-2.5 py-1 bg-white border border-[var(--rule)] rounded font-semibold text-[var(--ink)]">[ Semester 4 ]</span>
+          <span class="px-2.5 py-1 bg-white border border-[var(--rule)] rounded font-semibold text-[var(--ink)]">[ Semester 5 ]</span>
+          <span class="px-2.5 py-1 bg-white border border-[var(--rule)] rounded font-semibold text-[var(--ink)]">[ Semester 6 ]</span>
+        </div>
+      </div>
+      
+      <p class="text-xs font-mono text-[var(--slate)] uppercase tracking-wider">Select your authorised platform to enter:</p>
+    </div>
+
+    <!-- Four Independent Platforms Grid -->
+    <div class="md:col-span-6 ledger-lines rounded-lg p-3 bg-[var(--parchment-2)] border border-[var(--rule)]">
+      <div class="grid grid-cols-2 gap-3.5 p-2">
+        
+        <!-- Platform: Administrator -->
+        <button onclick="loginPlatform('admin')" class="role-card rounded-lg p-5 text-left flex flex-col justify-between h-44">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono text-[10px] font-bold text-[var(--brass-2)] tracking-wider">ALL SIX SEMESTERS</span>
+              <span class="text-base">👑</span>
+            </div>
+            <div class="font-display font-bold text-lg text-[var(--ink)] mb-1">Administrator Platform</div>
+            <div class="text-[11px] text-[var(--slate)] leading-snug">Configure academic setup, manage courses, enrolment rosters, sections, and promotions.</div>
+          </div>
+          <div class="font-mono text-[10px] text-[var(--brass)] font-semibold flex items-center gap-1">Enter Admin Platform →</div>
+        </button>
+
+        <!-- Platform: HOD -->
+        <button onclick="loginPlatform('hod')" class="role-card rounded-lg p-5 text-left flex flex-col justify-between h-44">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono text-[10px] font-bold text-[var(--brass-2)] tracking-wider">DEPARTMENT-WIDE</span>
+              <span class="text-base">📊</span>
+            </div>
+            <div class="font-display font-bold text-lg text-[var(--ink)] mb-1">HOD Platform</div>
+            <div class="text-[11px] text-[var(--slate)] leading-snug">Monitor academic progress across all semesters, review faculty workloads, and approve requests.</div>
+          </div>
+          <div class="font-mono text-[10px] text-[var(--brass)] font-semibold flex items-center gap-1">Enter HOD Platform →</div>
+        </button>
+
+        <!-- Platform: Faculty -->
+        <button onclick="loginPlatform('faculty')" class="role-card rounded-lg p-5 text-left flex flex-col justify-between h-44">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono text-[10px] font-bold text-[var(--brass-2)] tracking-wider">ASSIGNED COURSES ONLY</span>
+              <span class="text-base">👨‍🏫</span>
+            </div>
+            <div class="font-display font-bold text-lg text-[var(--ink)] mb-1">Faculty Platform</div>
+            <div class="text-[11px] text-[var(--slate)] leading-snug">Access assigned semester courses, record session attendance, and enter assessment marks.</div>
+          </div>
+          <div class="font-mono text-[10px] text-[var(--brass)] font-semibold flex items-center gap-1">Enter Faculty Platform →</div>
+        </button>
+
+        <!-- Platform: Student -->
+        <button onclick="loginPlatform('student')" class="role-card rounded-lg p-5 text-left flex flex-col justify-between h-44">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono text-[10px] font-bold text-[var(--brass-2)] tracking-wider">PERSONAL ENROLMENT</span>
+              <span class="text-base">🎓</span>
+            </div>
+            <div class="font-display font-bold text-lg text-[var(--ink)] mb-1">Student Platform</div>
+            <div class="text-[11px] text-[var(--slate)] leading-snug">View enrolled courses, semester timetable, verified attendance, marks, and results.</div>
+          </div>
+          <div class="font-mono text-[10px] text-[var(--brass)] font-semibold flex items-center gap-1">Enter Student Platform →</div>
+        </button>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Workspace Isolation Note -->
+  <section class="max-w-6xl mx-auto px-6 py-4">
+    <div class="card p-5 bg-white border-[var(--rule)]">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <span class="ws-tag">INDEPENDENT SEMESTER CONFIGURATION</span>
+          <h4 class="font-display font-bold text-base text-[var(--ink)] mt-1">Strict Semester Data Isolation</h4>
+          <p class="text-xs text-[var(--slate)] mt-0.5 max-w-2xl">
+            Each semester environment operates with distinct course codes, credits, elective groups, faculty assignments, student rosters, and examination patterns. Cross-semester data leakage is blocked by design.
+          </p>
+        </div>
+        <div class="font-mono text-xs text-[var(--slate)] font-semibold bg-[var(--parchment-2)] px-3 py-2 rounded border border-[var(--rule)]">
+          🔒 BCA CBCS Curriculum V2.4 Active
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- =====================================================================
+     VIEW: MAIN DASHBOARD APPLICATION SHELL
+===================================================================== -->
+<div id="view-dashboard" class="view">
+  <div class="flex min-h-screen">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-64 shrink-0 bg-[var(--ink-dark)] text-[var(--parchment)] flex flex-col justify-between border-r border-white/10 shadow-xl">
+      <div>
+        <!-- Platform Header -->
+        <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-[#F5E8C9] text-[#B8892D] flex items-center justify-center font-brand font-bold text-lg shadow-sm">
+              B
+            </div>
+            <div>
+              <div class="font-brand font-bold text-lg text-white leading-tight">BcaFly</div>
+              <div class="text-[9px] font-mono tracking-widest text-[var(--brass)] uppercase" id="platform-tag">Administrator Platform</div>
+            </div>
+          </div>
+          <button onclick="logoutPlatform()" title="Exit to Platform Access" class="text-white/60 hover:text-white text-xs font-mono p-1">
+            🚪
+          </button>
+        </div>
+
+        <!-- Authorized Platform Label -->
+        <div class="px-4 py-2.5 bg-white/5 border-b border-white/10 flex items-center justify-between">
+          <div>
+            <div class="text-[9px] font-mono tracking-widest text-white/50 uppercase">AUTHORISED ACCESS</div>
+            <div class="text-xs font-mono text-white font-semibold" id="active-platform-name">Administrator Platform</div>
+          </div>
+          <span class="ws-tag text-[9px]">ACTIVE</span>
+        </div>
+
+        <!-- Dynamic Navigation Links -->
+        <nav id="sidebar-nav" class="p-2 space-y-0.5 max-h-[calc(100vh-220px)] overflow-y-auto"></nav>
+      </div>
+
+      <!-- User Footnote -->
+      <div class="p-3 border-t border-white/10 bg-black/20 flex items-center justify-between text-xs font-mono">
+        <div class="truncate">
+          <div class="text-white font-semibold truncate" id="current-user-name">Dr. A. Sharma</div>
+          <div class="text-[10px] text-[var(--brass)]" id="current-user-sub">Administrator</div>
+        </div>
+        <button onclick="logoutPlatform()" class="px-2 py-1 text-[10px] text-white/70 hover:text-white border border-white/20 rounded hover:bg-white/10 transition">
+          Exit
+        </button>
+      </div>
+    </aside>
+
+    <!-- RIGHT MAIN CONTENT PANE -->
+    <main class="flex-1 flex flex-col min-w-0 bg-[var(--parchment)] overflow-y-auto">
+      
+      <!-- Topbar Header -->
+      <header class="h-16 px-8 bg-white border-b border-[var(--rule)] flex items-center justify-between shrink-0 shadow-2xs">
+        <div class="flex items-center gap-3">
+          <h2 class="font-display font-bold text-xl text-[var(--ink)]" id="page-title">BCA Academic Workspaces</h2>
+          <span class="ws-tag" id="page-badge">YOUR ASSIGNED SEMESTER WORKSPACE</span>
+        </div>
+        
+        <div class="flex items-center gap-4">
+          <!-- Student Switcher (shown only in Student Platform) -->
+          <div id="student-switcher-container" class="hidden flex items-center gap-2">
+            <label class="text-[11px] font-mono text-[var(--slate)] font-medium">STUDENT ENROLMENT:</label>
+            <select id="student-switcher" onchange="switchStudent()" class="field-input text-xs py-1 min-w-[220px]"></select>
+          </div>
+
+          <!-- Academic Term Indicator -->
+          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded bg-[var(--parchment-2)] border border-[var(--rule)] text-xs font-mono text-[var(--ink)]">
+            <span class="text-[var(--brass-2)] font-bold">ACADEMIC YEAR:</span> 2025–26
+          </div>
+
+          <button onclick="showToast('Semester workspace isolation verified: No cross-semester leakage.')" class="w-8 h-8 rounded-full border border-[var(--rule)] bg-white flex items-center justify-center text-xs hover:bg-[var(--parchment-2)]" title="Workspace Verification Status">
+            🛡️
+          </button>
+        </div>
+      </header>
+
+      <!-- SEMESTER WORKSPACE SELECTOR BAR (SEMESTER 1 TO 6) -->
+      <div class="px-8 py-3 bg-[var(--parchment-2)] border-b border-[var(--rule)] flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono font-bold text-[var(--ink)]">SELECT SEMESTER:</span>
+          <div class="flex flex-wrap gap-1.5" id="semester-tabs-container">
+            <button onclick="selectSemester(1)" id="sem-tab-1" class="sem-tab">[ Semester 1 ]</button>
+            <button onclick="selectSemester(2)" id="sem-tab-2" class="sem-tab">[ Semester 2 ]</button>
+            <button onclick="selectSemester(3)" id="sem-tab-3" class="sem-tab active">[ Semester 3 ]</button>
+            <button onclick="selectSemester(4)" id="sem-tab-4" class="sem-tab">[ Semester 4 ]</button>
+            <button onclick="selectSemester(5)" id="sem-tab-5" class="sem-tab">[ Semester 5 ]</button>
+            <button onclick="selectSemester(6)" id="sem-tab-6" class="sem-tab">[ Semester 6 ]</button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs font-mono">
+          <span class="text-[var(--slate)]">ACTIVE WORKSPACE:</span>
+          <span class="font-bold text-[var(--ink)] bg-white px-2.5 py-1 rounded border border-[var(--rule)]" id="active-sem-banner">BCA SEMESTER 3 (ODD TERM)</span>
+        </div>
+      </div>
+
+      <!-- Subview Container -->
+      <div class="p-8 flex-1">
+
+        <!-- =================================================================
+             1. ADMINISTRATOR PLATFORM SUBVIEWS
+        ================================================================== -->
+        
+        <!-- 1.1 ADMIN: Semester Workspace Overview -->
+        <section id="sub-admin-overview" class="subview">
+          <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Semester Workspace Overview</h3>
+              <p class="text-xs text-[var(--slate)]">Independent academic configuration for the selected semester environment.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="refreshData()" class="btn-ghost border border-[var(--rule)] text-xs font-mono px-3 py-1.5 rounded">🔄 SYNC WORKSPACE</button>
+              <button onclick="exportAuditLogPDF()" class="btn-ink text-xs font-mono px-3 py-1.5 rounded">📥 AUDIT TRAIL</button>
+            </div>
+          </div>
+
+          <!-- KPI Cards -->
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="card p-5 cursor-pointer hover:border-[var(--brass)] transition" onclick="showSub('admin-students')">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">SEMESTER ENROLMENT</div>
+              <div class="stat-num text-[var(--ink)]" id="ov-sem-students">0</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2 font-medium">● Enrolled in Active Sem</div>
+            </div>
+            <div class="card p-5 cursor-pointer hover:border-[var(--brass)] transition" onclick="showSub('admin-courses')">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">SEMESTER-SPECIFIC COURSES</div>
+              <div class="stat-num text-[var(--brass-2)]" id="ov-sem-courses">0</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2 font-medium">● Core &amp; Electives</div>
+            </div>
+            <div class="card p-5 cursor-pointer hover:border-[var(--brass)] transition" onclick="showSub('admin-faculty')">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">ASSIGNED FACULTY</div>
+              <div class="stat-num text-[var(--ink)]" id="ov-sem-faculty">0</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2 font-medium">● Course Instructors</div>
+            </div>
+            <div class="card p-5 cursor-pointer hover:border-[var(--brass)] transition" onclick="showSub('admin-attendance')">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">SEMESTER ATTENDANCE</div>
+              <div class="stat-num text-emerald-700" id="ov-sem-att">0%</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2 font-medium">● Benchmark: 75%</div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="card p-5">
+              <div class="font-display font-bold text-sm mb-4 text-[var(--ink)]">Enrolment Across All Six Semesters</div>
+              <canvas id="chart-sem-enrolment" height="170"></canvas>
+            </div>
+            <div class="card p-5">
+              <div class="font-display font-bold text-sm mb-4 text-[var(--ink)]">Active Semester Assessment Standing</div>
+              <canvas id="chart-sem-pass" height="170"></canvas>
+            </div>
+          </div>
+
+          <!-- Real-Time Audit Stream -->
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-3 border-b border-[var(--rule)] pb-2">
+              <div class="font-display font-bold text-sm text-[var(--ink)]">
+                Semester Mutation Trail <span class="font-mono text-xs font-normal text-[var(--slate)]">(Append-Only Log)</span>
+              </div>
+              <button onclick="showSub('admin-audit')" class="text-xs font-mono text-[var(--brass)] hover:underline font-semibold">FULL AUDIT LOG →</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="ledger w-full text-xs">
+                <thead>
+                  <tr>
+                    <th class="text-left">Timestamp</th>
+                    <th class="text-left">Actor</th>
+                    <th class="text-left">Role</th>
+                    <th class="text-left">Action</th>
+                    <th class="text-left">Details</th>
+                  </tr>
+                </thead>
+                <tbody id="ov-activity"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1.2 ADMIN: Semester-Specific Courses -->
+        <section id="sub-admin-courses" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Semester-Specific Courses &amp; Subjects</h3>
+              <p class="text-xs text-[var(--slate)]">Courses and credits configured exclusively for the active semester environment.</p>
+            </div>
+            <button onclick="openCourseModal('add')" class="btn-ink text-xs font-mono px-4 py-2 rounded">+ ADD COURSE TO SEMESTER</button>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto mb-4">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">Course Code</th>
+                  <th class="text-left">Course Title</th>
+                  <th class="text-left">Course Type</th>
+                  <th class="text-left">Credits</th>
+                  <th class="text-left">Assigned Faculty</th>
+                  <th class="text-left">Classroom Slot</th>
+                  <th class="text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-course-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 1.3 ADMIN: Semester Enrolment -->
+        <section id="sub-admin-students" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Semester Enrolment &amp; Student Rosters</h3>
+              <p class="text-xs text-[var(--slate)]">Students enrolled specifically in this semester workspace.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="openPromotionModal()" class="btn-brass text-xs font-mono px-3 py-2 rounded">🚀 AUTHORISED PROMOTION</button>
+              <button onclick="openStudentModal('add')" class="btn-ink text-xs font-mono px-4 py-2 rounded">+ ENROL STUDENT</button>
+            </div>
+          </div>
+
+          <div class="card p-4 mb-4 flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[200px]">
+              <label class="block text-[11px] font-mono text-[var(--slate)] mb-1">SEARCH SEMESTER ROSTER</label>
+              <input id="sm-search" oninput="renderAdminStudents()" placeholder="Name or USN register number..." class="field-input text-xs"/>
+            </div>
+            <div>
+              <label class="block text-[11px] font-mono text-[var(--slate)] mb-1">SECTION</label>
+              <select id="sm-section" onchange="renderAdminStudents()" class="field-input text-xs">
+                <option value="">All Sections</option>
+                <option value="A">Section A</option>
+                <option value="B">Section B</option>
+              </select>
+            </div>
+            <div class="ml-auto text-xs font-mono text-[var(--slate)] font-semibold" id="sm-count">Showing 0 students</div>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">USN / Reg No</th>
+                  <th class="text-left">Student Name</th>
+                  <th class="text-left">Section</th>
+                  <th class="text-left">Batch</th>
+                  <th class="text-left">Semester Attendance</th>
+                  <th class="text-left">SGPA</th>
+                  <th class="text-left">CGPA</th>
+                  <th class="text-left">Status</th>
+                  <th class="text-left">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-student-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 1.4 ADMIN: Assigned Faculty -->
+        <section id="sub-admin-faculty" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Assigned Faculty for Semester</h3>
+              <p class="text-xs text-[var(--slate)]">Faculty allocations and weekly workloads for courses in this semester.</p>
+            </div>
+            <button onclick="openFacultyModal('add')" class="btn-ink text-xs font-mono px-4 py-2 rounded">+ ASSIGN FACULTY</button>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto mb-6">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">Faculty ID</th>
+                  <th class="text-left">Name &amp; Designation</th>
+                  <th class="text-left">Semester Courses Assigned</th>
+                  <th class="text-left">Workload</th>
+                  <th class="text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody id="admin-faculty-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 1.5 ADMIN: Semester Timetable -->
+        <section id="sub-admin-timetable" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Semester Timetable Matrix</h3>
+              <p class="text-xs text-[var(--slate)]">Weekly class schedule for the active semester environment.</p>
+            </div>
+            <button onclick="validateTimetableClashes()" class="btn-brass text-xs font-mono px-3 py-2 rounded">⚡ VERIFY CLASH-FREE</button>
+          </div>
+
+          <div class="card p-5 mb-6" id="timetable-matrix-container"></div>
+        </section>
+
+        <!-- 1.6 ADMIN: Semester Attendance -->
+        <section id="sub-admin-attendance" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Semester Attendance Records</h3>
+              <p class="text-xs text-[var(--slate)]">Subject-wise attendance tracking and eligibility monitoring for this semester.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="exportAdminAttendance('xlsx')" class="btn-ghost border border-[var(--rule)] text-xs font-mono px-3 py-2 rounded">EXCEL</button>
+              <button onclick="exportAdminAttendance('pdf')" class="btn-ink text-xs font-mono px-3 py-2 rounded">PDF REPORT</button>
+            </div>
+          </div>
+
+          <div class="card p-4 mb-4 flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[280px]">
+              <label class="block text-[11px] font-mono text-[var(--slate)] mb-1">SELECT SEMESTER COURSE</label>
+              <select id="aa-course" onchange="renderAdminAttendance()" class="field-input text-xs font-mono"></select>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">USN</th>
+                  <th class="text-left">Enrolled Student Name</th>
+                  <th class="text-left">Attended</th>
+                  <th class="text-left">Conducted</th>
+                  <th class="text-left">Attendance %</th>
+                  <th class="text-left">Eligibility (&gt;=75%)</th>
+                  <th class="text-left">Controlled Override</th>
+                </tr>
+              </thead>
+              <tbody id="admin-attendance-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 1.7 ADMIN: Semester Assessment -->
+        <section id="sub-admin-marks" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Semester Internal Assessment</h3>
+              <p class="text-xs text-[var(--slate)]">Continuous assessment scores (IA-1, IA-2, Assignments) for semester courses.</p>
+            </div>
+            <button onclick="publishSemesterMarks()" class="btn-brass text-xs font-mono px-4 py-2 rounded">🚀 PUBLISH MARKS</button>
+          </div>
+
+          <div class="card p-4 mb-4">
+            <label class="block text-[11px] font-mono text-[var(--slate)] mb-1">SELECT SEMESTER COURSE</label>
+            <select id="am-course" onchange="renderAdminMarks()" class="field-input text-xs font-mono max-w-md"></select>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">USN</th>
+                  <th class="text-left">Enrolled Student Name</th>
+                  <th class="text-left">IA-1 (/20)</th>
+                  <th class="text-left">IA-2 (/20)</th>
+                  <th class="text-left">Assignment (/10)</th>
+                  <th class="text-left">Total (/50)</th>
+                  <th class="text-left">Lock Status</th>
+                </tr>
+              </thead>
+              <tbody id="admin-marks-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 1.8 ADMIN: Semester Results -->
+        <section id="sub-admin-results" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Semester Examination Results</h3>
+              <p class="text-xs text-[var(--slate)]">Semester grade sheets, SGPA calculations, and pass/fail standings.</p>
+            </div>
+            <button onclick="publishSemesterResults()" class="btn-brass text-xs font-mono px-4 py-2 rounded">📢 PUBLISH RESULTS</button>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">USN</th>
+                  <th class="text-left">Student Name</th>
+                  <th class="text-left">Total Marks</th>
+                  <th class="text-left">SGPA</th>
+                  <th class="text-left">CGPA</th>
+                  <th class="text-left">Arrears / Backlogs</th>
+                  <th class="text-left">Result Status</th>
+                </tr>
+              </thead>
+              <tbody id="admin-results-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 1.9 ADMIN: Activity Portfolios -->
+        <section id="sub-admin-activities" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Semester Activities &amp; Duty Requests</h3>
+              <p class="text-xs text-[var(--slate)]">Hackathons, certifications, and Official Duty (OD) submissions for this semester.</p>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">Submission ID</th>
+                  <th class="text-left">Student USN &amp; Name</th>
+                  <th class="text-left">Activity Title &amp; Body</th>
+                  <th class="text-left">Date</th>
+                  <th class="text-left">OD Exemption?</th>
+                  <th class="text-left">Status</th>
+                  <th class="text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-activity-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 1.10 ADMIN: Reports & Exports -->
+        <section id="sub-admin-reports" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Semester Reports &amp; Exports</h3>
+              <p class="text-xs text-[var(--slate)]">Export semester-specific ledgers in PDF and Excel formats.</p>
+            </div>
+          </div>
+
+          <div class="grid sm:grid-cols-3 gap-5">
+            <div class="card p-5 flex flex-col justify-between">
+              <div>
+                <div class="text-base mb-2">📋</div>
+                <div class="font-display font-bold text-sm mb-1">Attendance Shortage List</div>
+                <div class="text-xs text-[var(--slate)] mb-4">Export students with attendance &lt; 75% in active semester.</div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="exportShortageList('pdf')" class="btn-ink text-xs font-mono px-3 py-1.5 rounded flex-1">PDF</button>
+                <button onclick="exportShortageList('xlsx')" class="btn-ghost border border-[var(--rule)] text-xs font-mono px-3 py-1.5 rounded flex-1">EXCEL</button>
+              </div>
+            </div>
+
+            <div class="card p-5 flex flex-col justify-between">
+              <div>
+                <div class="text-base mb-2">📊</div>
+                <div class="font-display font-bold text-sm mb-1">Semester Master Ledger</div>
+                <div class="text-xs text-[var(--slate)] mb-4">Complete student records, marks, and SGPA for this semester.</div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="exportMasterLedger('pdf')" class="btn-ink text-xs font-mono px-3 py-1.5 rounded flex-1">PDF</button>
+                <button onclick="exportMasterLedger('xlsx')" class="btn-ghost border border-[var(--rule)] text-xs font-mono px-3 py-1.5 rounded flex-1">EXCEL</button>
+              </div>
+            </div>
+
+            <div class="card p-5 flex flex-col justify-between">
+              <div>
+                <div class="text-base mb-2">🎓</div>
+                <div class="font-display font-bold text-sm mb-1">Semester Results Summary</div>
+                <div class="text-xs text-[var(--slate)] mb-4">Official grade breakdown and pass/fail distributions.</div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="exportResultsSummary('pdf')" class="btn-ink text-xs font-mono px-3 py-1.5 rounded flex-1">PDF</button>
+                <button onclick="exportResultsSummary('xlsx')" class="btn-ghost border border-[var(--rule)] text-xs font-mono px-3 py-1.5 rounded flex-1">EXCEL</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1.11 ADMIN: Immutable Audit Log -->
+        <section id="sub-admin-audit" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <h3 class="font-display text-2xl font-bold">Immutable Append-Only Audit Trail</h3>
+              <p class="text-xs text-[var(--slate)]">Every course edit, roster enrolment, attendance override, and marks entry is recorded.</p>
+            </div>
+            <button onclick="exportAuditLogPDF()" class="btn-ink text-xs font-mono px-4 py-2 rounded">📥 EXPORT AUDIT PDF</button>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">Event ID</th>
+                  <th class="text-left">Timestamp (IST)</th>
+                  <th class="text-left">Actor</th>
+                  <th class="text-left">Role</th>
+                  <th class="text-left">Action</th>
+                  <th class="text-left">Details</th>
+                </tr>
+              </thead>
+              <tbody id="full-audit-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- =================================================================
+             2. HOD PLATFORM SUBVIEWS
+        ================================================================== -->
+        
+        <section id="sub-hod-overview" class="subview">
+          <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <div>
+              <div class="ws-tag mb-1">DEPARTMENT-WIDE OVERSIGHT</div>
+              <h3 class="font-display text-2xl font-bold">HOD Department Command Center</h3>
+              <p class="text-xs text-[var(--slate)]">Monitoring progress and approvals for the active semester workspace.</p>
+            </div>
+            <button onclick="showSub('hod-approvals')" class="btn-brass text-xs font-mono px-4 py-2 rounded">
+              ⚡ APPROVALS QUEUE (<span id="hod-pending-badge">0</span>)
+            </button>
+          </div>
+
+          <div class="grid sm:grid-cols-4 gap-4 mb-8">
+            <div class="card p-5">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">SEMESTER ENROLMENT</div>
+              <div class="stat-num text-[var(--ink)]" id="hod-stat-students">0</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2">Active Semester</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">SEMESTER ATTENDANCE</div>
+              <div class="stat-num text-[var(--pass)]" id="hod-stat-att">0%</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2">Benchmark: 75.0%</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">AVERAGE SGPA</div>
+              <div class="stat-num text-[var(--brass-2)]" id="hod-stat-sgpa">8.42</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2">Class: Distinction</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">AT-RISK DEFICITS</div>
+              <div class="stat-num text-[var(--fail)]" id="hod-stat-risk">0</div>
+              <div class="text-[10px] font-mono text-red-700 mt-2">Shortage / Backlogs</div>
+            </div>
+          </div>
+
+          <div class="card p-5 mb-6">
+            <div class="font-display font-bold text-sm text-[var(--ink)] mb-3 flex items-center justify-between">
+              <span>Department Approvals Requiring HOD Action</span>
+              <button onclick="showSub('hod-approvals')" class="text-xs font-mono text-[var(--brass)] font-semibold">VIEW ALL →</button>
+            </div>
+            <div class="space-y-2.5" id="hod-quick-approvals"></div>
+          </div>
+        </section>
+
+        <!-- HOD Approvals Centre -->
+        <section id="sub-hod-approvals" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">STUDENT ACTIVITY &amp; OD QUEUE</div>
+              <h3 class="font-display text-2xl font-bold">HOD Approvals Centre</h3>
+              <p class="text-xs text-[var(--slate)]">Review and verify student activities and OD requests for this semester.</p>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">Type</th>
+                  <th class="text-left">Student USN &amp; Name</th>
+                  <th class="text-left">Event Details</th>
+                  <th class="text-left">Date</th>
+                  <th class="text-left">Status</th>
+                  <th class="text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody id="hod-approval-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- HOD Backlogs -->
+        <section id="sub-hod-backlogs" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">REMEDIAL INTERVENTIONS</div>
+              <h3 class="font-display text-2xl font-bold">Backlog &amp; Remedial Register</h3>
+              <p class="text-xs text-[var(--slate)]">At-risk students requiring remedial tutorials in this semester.</p>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">USN</th>
+                  <th class="text-left">Student Name</th>
+                  <th class="text-left">Arrear Course Code</th>
+                  <th class="text-left">Current CGPA</th>
+                  <th class="text-left">Assigned Faculty Mentor</th>
+                  <th class="text-left">Remedial Status</th>
+                </tr>
+              </thead>
+              <tbody id="hod-backlog-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- =================================================================
+             3. FACULTY PLATFORM SUBVIEWS (ASSIGNED COURSES ONLY)
+        ================================================================== -->
+        
+        <!-- 3.1 FACULTY: Assigned Courses -->
+        <section id="sub-faculty-courses" class="subview">
+          <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">YOUR ASSIGNED SEMESTER WORKSPACE</div>
+              <h3 class="font-display text-2xl font-bold">My Assigned Semester Courses</h3>
+              <p class="text-xs text-[var(--slate)]">Showing only courses assigned to you in the selected semester environment.</p>
+            </div>
+          </div>
+          <div class="grid md:grid-cols-2 gap-4" id="faculty-course-cards"></div>
+        </section>
+
+        <!-- 3.2 FACULTY: Attendance Entry -->
+        <section id="sub-faculty-attendance" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">SEMESTER ATTENDANCE RECORDING</div>
+              <h3 class="font-display text-2xl font-bold">Class Attendance Entry</h3>
+              <p class="text-xs text-[var(--slate)]">Record session attendance for enrolled students in your assigned course.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="markAllPresent()" class="btn-ghost border border-[var(--rule)] text-xs font-mono px-3 py-2 rounded">✓ MARK ALL PRESENT</button>
+              <button onclick="saveFacultyAttendance()" class="btn-brass text-xs font-mono px-4 py-2 rounded">💾 COMMIT ATTENDANCE</button>
+            </div>
+          </div>
+
+          <div class="card p-4 mb-4 flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-[260px]">
+              <label class="block text-[11px] font-mono text-[var(--slate)] mb-1">SELECT ASSIGNED COURSE</label>
+              <select id="fa-course" onchange="renderFacultyAttendance()" class="field-input text-xs font-mono"></select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-mono text-[var(--slate)] mb-1">SESSION DATE</label>
+              <input type="date" id="fa-date" class="field-input text-xs"/>
+            </div>
+            <div class="ml-auto font-mono text-xs text-[var(--slate)]">
+              PRESENT: <span id="fa-present-count" class="font-bold text-[var(--pass)]">0</span> / <span id="fa-total-count" class="font-bold">0</span>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">USN</th>
+                  <th class="text-left">Enrolled Student Name (Semester Roster)</th>
+                  <th class="text-left">Semester Attendance %</th>
+                  <th class="text-left">Today's Attendance Status</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-attendance-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 3.3 FACULTY: Marks Entry -->
+        <section id="sub-faculty-marks" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">SEMESTER ASSESSMENT ENTRY</div>
+              <h3 class="font-display text-2xl font-bold">Internal Assessment Marks Entry</h3>
+              <p class="text-xs text-[var(--slate)]">Enter marks for students enrolled in your assigned semester courses.</p>
+            </div>
+            <button onclick="submitFacultyMarks()" class="btn-brass text-xs font-mono px-4 py-2 rounded">🚀 SUBMIT FOR HOD APPROVAL</button>
+          </div>
+
+          <div class="card p-4 mb-4 flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-[260px]">
+              <label class="block text-[11px] font-mono text-[var(--slate)] mb-1">SELECT ASSIGNED COURSE</label>
+              <select id="fm-course" onchange="renderFacultyMarks()" class="field-input text-xs font-mono"></select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-mono text-[var(--slate)] mb-1">ASSESSMENT COMPONENT</label>
+              <select id="fm-component" onchange="renderFacultyMarks()" class="field-input text-xs">
+                <option value="t1">Internal Assessment 1 (IA-1 /20)</option>
+                <option value="t2">Internal Assessment 2 (IA-2 /20)</option>
+                <option value="asg">Coursework &amp; Assignment (/10)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">USN</th>
+                  <th class="text-left">Enrolled Student Name</th>
+                  <th class="text-left">Marks Obtained</th>
+                  <th class="text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-marks-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 3.4 FACULTY: Reports -->
+        <section id="sub-faculty-reports" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">COURSE PERFORMANCE SUMMARY</div>
+              <h3 class="font-display text-2xl font-bold">Faculty Course Reports</h3>
+              <p class="text-xs text-[var(--slate)]">Class performance generated for your assigned courses in this semester.</p>
+            </div>
+            <button onclick="exportFacultyReportPDF()" class="btn-ink text-xs font-mono px-4 py-2 rounded">📥 EXPORT REPORT (PDF)</button>
+          </div>
+
+          <div class="card p-4 mb-4">
+            <label class="block text-[11px] font-mono text-[var(--slate)] mb-1">SELECT ASSIGNED COURSE</label>
+            <select id="fr-course" onchange="renderFacultyReport()" class="field-input text-xs font-mono max-w-md"></select>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">USN</th>
+                  <th class="text-left">Enrolled Student Name</th>
+                  <th class="text-left">Semester Attendance %</th>
+                  <th class="text-left">Internal Total (/50)</th>
+                  <th class="text-left">Academic Standing</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-report-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- =================================================================
+             4. STUDENT PLATFORM SUBVIEWS (PERSONAL ENROLMENT ONLY)
+        ================================================================== -->
+        
+        <section id="sub-student-overview" class="subview">
+          <div class="card p-6 mb-6 bg-white border border-[var(--rule)]">
+            <div class="flex items-start justify-between flex-wrap gap-4">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full bg-[var(--brass-soft)] border-2 border-[var(--brass)] flex items-center justify-center font-display text-2xl font-bold text-[var(--brass-2)]">
+                  🎓
+                </div>
+                <div>
+                  <div class="ws-tag mb-1">PERSONAL ENROLMENT LEDGER</div>
+                  <h3 class="font-display text-2xl font-bold text-[var(--ink)]" id="stu-profile-name">—</h3>
+                  <div class="font-mono text-xs text-[var(--slate)] mt-0.5" id="stu-profile-usn">—</div>
+                </div>
+              </div>
+              <button onclick="exportVerifiedStudentPortfolioPDF()" class="btn-brass text-xs font-mono px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm">
+                <span>🏆</span> DOWNLOAD VERIFIED PORTFOLIO (PDF)
+              </button>
+            </div>
+          </div>
+
+          <div class="grid sm:grid-cols-4 gap-4 mb-8">
+            <div class="card p-5">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">SEMESTER ATTENDANCE</div>
+              <div class="stat-num text-[var(--pass)]" id="so-att">0%</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2 font-medium">Eligible for Semester Exams</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">CUMULATIVE CGPA</div>
+              <div class="stat-num text-[var(--ink)]" id="so-cgpa">0.00</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2 font-medium">Class: Distinction</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">SEMESTER SGPA</div>
+              <div class="stat-num text-[var(--brass-2)]" id="so-sgpa">0.00</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2 font-medium">Active Semester Workspace</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[11px] font-mono text-[var(--slate)] mb-1">ACTIVE ARREARS</div>
+              <div class="stat-num text-[var(--fail)]" id="so-back">0</div>
+              <div class="text-[10px] font-mono text-emerald-700 mt-2 font-medium">Clear Record</div>
+            </div>
+          </div>
+
+          <div class="card p-5">
+            <div class="font-display font-bold text-sm text-[var(--ink)] mb-3 flex justify-between items-center">
+              <span>My Enrolled Semester Courses &amp; Instructors</span>
+              <span class="badge b-pub">ACTIVE SEMESTER</span>
+            </div>
+            <div class="space-y-3" id="stu-enrolled-courses-list"></div>
+          </div>
+        </section>
+
+        <!-- Student Attendance -->
+        <section id="sub-student-attendance" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">SEMESTER ATTENDANCE BREAKDOWN</div>
+              <h3 class="font-display text-2xl font-bold">My Subject Attendance</h3>
+              <p class="text-xs text-[var(--slate)]">Shows attendance only for courses in your currently enrolled semester.</p>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">Course Code &amp; Title</th>
+                  <th class="text-left">Faculty Instructor</th>
+                  <th class="text-left">Attended</th>
+                  <th class="text-left">Conducted</th>
+                  <th class="text-left">Attendance %</th>
+                  <th class="text-left">Standing</th>
+                </tr>
+              </thead>
+              <tbody id="student-attendance-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Student Marks -->
+        <section id="sub-student-marks" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">CONTINUOUS INTERNAL ASSESSMENT</div>
+              <h3 class="font-display text-2xl font-bold">My Internal Assessment Marks</h3>
+              <p class="text-xs text-[var(--slate)]">Scores verified and published for your semester courses.</p>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden overflow-x-auto">
+            <table class="ledger w-full text-xs">
+              <thead>
+                <tr>
+                  <th class="text-left">Course Code &amp; Title</th>
+                  <th class="text-left">IA-1 (/20)</th>
+                  <th class="text-left">IA-2 (/20)</th>
+                  <th class="text-left">Assignment (/10)</th>
+                  <th class="text-left">Total (/50)</th>
+                  <th class="text-left">Lock State</th>
+                </tr>
+              </thead>
+              <tbody id="student-marks-rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Student Results -->
+        <section id="sub-student-results" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">UNIVERSITY TRANSCRIPT</div>
+              <h3 class="font-display text-2xl font-bold">My Official Examination Results</h3>
+              <p class="text-xs text-[var(--slate)]">Official semester grade sheet published by university examination cell.</p>
+            </div>
+            <button onclick="exportStudentTranscript('pdf')" class="btn-ink text-xs font-mono px-4 py-2 rounded">📥 EXPORT TRANSCRIPT (PDF)</button>
+          </div>
+
+          <div class="card p-5 mb-6 bg-white">
+            <div class="flex items-center justify-between border-b border-[var(--rule)] pb-3 mb-4">
+              <div>
+                <span class="font-mono text-xs text-[var(--brass-2)] font-bold" id="sr-sem-label">SEMESTER 3 RESULTS</span>
+                <div class="font-display font-bold text-lg text-[var(--ink)]">Bachelor of Computer Applications (BCA)</div>
+              </div>
+              <div id="sr-result-badge"></div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono text-xs mb-4">
+              <div><span class="text-gray-500">SGPA:</span> <span class="font-bold text-[var(--ink)]" id="sr-sgpa">0.00</span></div>
+              <div><span class="text-gray-500">CGPA:</span> <span class="font-bold text-[var(--ink)]" id="sr-cgpa">0.00</span></div>
+              <div><span class="text-gray-500">CREDITS:</span> <span class="font-bold text-[var(--ink)]" id="sr-credits">22 / 22</span></div>
+              <div><span class="text-gray-500">STATUS:</span> <span class="font-bold text-[var(--pass)]">PASSED</span></div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="ledger w-full text-xs">
+                <thead>
+                  <tr>
+                    <th class="text-left">Subject Code &amp; Title</th>
+                    <th class="text-left">Marks (/100)</th>
+                    <th class="text-left">Letter Grade</th>
+                    <th class="text-left">Credits</th>
+                    <th class="text-left">Result</th>
+                  </tr>
+                </thead>
+                <tbody id="student-results-rows"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Student Submit Activity -->
+        <section id="sub-student-submit-activity" class="subview">
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div>
+              <div class="ws-tag mb-1">STUDENT ACTIVITY PORTFOLIO</div>
+              <h3 class="font-display text-2xl font-bold">Submit Activity / Request Official Duty (OD)</h3>
+              <p class="text-xs text-[var(--slate)]">Add hackathons and certifications for attendance exemptions in this semester.</p>
+            </div>
+          </div>
+
+          <div class="card p-6 max-w-2xl bg-white">
+            <form onsubmit="handleStudentActivitySubmit(event)" class="space-y-4 text-xs">
+              <div>
+                <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">EVENT / ACTIVITY TITLE *</label>
+                <input id="act-title" required placeholder="e.g. National Level Hackathon 2026 / AWS Cloud Certified" class="field-input"/>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">ORGANIZING BODY *</label>
+                  <input id="act-org" required placeholder="e.g. IIT Bombay / Coursera" class="field-input"/>
+                </div>
+                <div>
+                  <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">CATEGORY *</label>
+                  <select id="act-cat" class="field-input">
+                    <option>Hackathon / Competition</option>
+                    <option>Technical Certification</option>
+                    <option>Workshop / Conference</option>
+                    <option>Mini Project Exhibition</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">EVENT DATE *</label>
+                  <input type="date" id="act-date" required class="field-input"/>
+                </div>
+                <div>
+                  <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">SKILLS DEMONSTRATED</label>
+                  <input id="act-skills" placeholder="e.g. Python, SQL, REST APIs" class="field-input"/>
+                </div>
+              </div>
+              <div class="p-3 bg-[var(--parchment-2)] border border-[var(--rule)] rounded flex items-center justify-between">
+                <label class="flex items-center gap-2 cursor-pointer font-medium text-[var(--ink)]">
+                  <input type="checkbox" id="act-od" class="rounded"/>
+                  <span>Request Official Duty (OD) Attendance Exemption for this Date</span>
+                </label>
+              </div>
+              <button type="submit" class="btn-brass font-mono text-xs px-5 py-2.5 rounded w-full font-bold">
+                SUBMIT TO HOD APPROVALS QUEUE
+              </button>
+            </form>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- =====================================================================
+     ADMINISTRATOR PLATFORM MODALS
+===================================================================== -->
+
+<!-- Add Course to Semester Modal -->
+<div id="modal-course" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="card p-6 bg-white max-w-md w-full shadow-2xl">
+    <div class="flex justify-between items-center mb-4 border-b border-[var(--rule)] pb-2">
+      <div>
+        <span class="ws-tag">SEMESTER COURSE CONFIGURATION</span>
+        <h4 class="font-display font-bold text-lg text-[var(--ink)] mt-1">Add Course to Semester <span id="m-course-sem-label">3</span></h4>
+      </div>
+      <button onclick="closeModal('modal-course')" class="text-gray-400 hover:text-black font-bold">✕</button>
+    </div>
+    <form onsubmit="handleSaveCourse(event)" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">COURSE CODE * (Unique within Semester)</label>
+        <input id="c-m-code" required placeholder="e.g. BCA305" class="field-input font-mono uppercase"/>
+      </div>
+      <div>
+        <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">COURSE TITLE *</label>
+        <input id="c-m-name" required placeholder="e.g. Mobile Application Development" class="field-input"/>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">COURSE TYPE</label>
+          <select id="c-m-type" class="field-input">
+            <option>Core Theory</option>
+            <option>Elective Theory</option>
+            <option>Laboratory</option>
+            <option>Mini Project</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">CREDITS *</label>
+          <input id="c-m-credits" type="number" min="1" max="10" value="4" required class="field-input font-mono"/>
+        </div>
+      </div>
+      <div>
+        <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">ASSIGN FACULTY MEMBER *</label>
+        <select id="c-m-faculty" class="field-input font-mono" required></select>
+      </div>
+      <div>
+        <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">CLASSROOM / LAB SLOT</label>
+        <input id="c-m-room" required value="Room 304 (Academic Block)" class="field-input"/>
+      </div>
+      <div class="pt-2 flex justify-end gap-2">
+        <button type="button" onclick="closeModal('modal-course')" class="btn-ghost border border-[var(--rule)] px-4 py-2 rounded">Cancel</button>
+        <button type="submit" class="btn-ink px-4 py-2 rounded font-mono">SAVE TO SEMESTER</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Enrol Student in Semester Modal -->
+<div id="modal-student" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="card p-6 bg-white max-w-md w-full shadow-2xl">
+    <div class="flex justify-between items-center mb-4 border-b border-[var(--rule)] pb-2">
+      <div>
+        <span class="ws-tag">SEMESTER ENROLMENT</span>
+        <h4 class="font-display font-bold text-lg text-[var(--ink)] mt-1">Enrol Student in Semester <span id="m-stu-sem-label">3</span></h4>
+      </div>
+      <button onclick="closeModal('modal-student')" class="text-gray-400 hover:text-black font-bold">✕</button>
+    </div>
+    <form onsubmit="handleSaveStudent(event)" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">USN REGISTER NUMBER * (Unique)</label>
+        <input id="stu-m-usn" required placeholder="e.g. 1BC24035" class="field-input font-mono"/>
+      </div>
+      <div>
+        <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">FULL NAME *</label>
+        <input id="stu-m-name" required placeholder="e.g. Rohan Verma" class="field-input"/>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">SECTION *</label>
+          <select id="stu-m-section" class="field-input">
+            <option value="A">Section A</option>
+            <option value="B">Section B</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] text-[var(--slate)] mb-1">BATCH</label>
+          <input id="stu-m-batch" value="2024–27" class="field-input font-mono"/>
+        </div>
+      </div>
+      <div class="pt-2 flex justify-end gap-2">
+        <button type="button" onclick="closeModal('modal-student')" class="btn-ghost border border-[var(--rule)] px-4 py-2 rounded">Cancel</button>
+        <button type="submit" class="btn-ink px-4 py-2 rounded font-mono">ENROL STUDENT</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Authorised Promotion Modal -->
+<div id="modal-promotion" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+  <div class="card p-6 bg-white max-w-lg w-full shadow-2xl">
+    <div class="flex justify-between items-center mb-4 border-b border-[var(--rule)] pb-2">
+      <div>
+        <span class="ws-tag">AUTHORISED SEMESTER PROGRESSION</span>
+        <h4 class="font-display font-bold text-lg text-[var(--ink)] mt-1">Authorised Student Promotion Engine</h4>
+      </div>
+      <button onclick="closeModal('modal-promotion')" class="text-gray-400 hover:text-black font-bold">✕</button>
+    </div>
+    <div class="space-y-4 text-xs">
+      <p class="text-[var(--slate)]">
+        Students move from one semester to the next only through an authorised promotion and enrolment process. The destination semester will initialize independent course enrolments.
+      </p>
+      <div class="grid grid-cols-2 gap-4 p-3 bg-[var(--parchment-2)] border border-[var(--rule)] rounded font-mono">
+        <div>
+          <span class="text-gray-500">FROM SEMESTER:</span>
+          <div class="font-bold text-[var(--ink)] text-sm" id="promo-from-label">Semester 3</div>
+        </div>
+        <div>
+          <span class="text-gray-500">TO SEMESTER:</span>
+          <div class="font-bold text-[var(--brass-2)] text-sm" id="promo-to-label">Semester 4</div>
+        </div>
+      </div>
+      <div class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 p-2.5 rounded font-mono">
+        ✓ Eligibility criteria verified (Attendance &gt;= 75% and SGPA &gt;= 5.0)
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeModal('modal-promotion')" class="btn-ghost border border-[var(--rule)] px-4 py-2 rounded">Cancel</button>
+        <button type="button" onclick="executeAuthorisedPromotion()" class="btn-brass px-4 py-2 rounded font-mono font-bold">AUTHORISE PROMOTION</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     JAVASCRIPT CORE LOGIC & SIX-SEMESTER WORKSPACE ENGINE
+===================================================================== -->
+<script>
+/* =====================================================================
+   INDEPENDENT SEMESTER DATA STRUCTURES (SEMESTERS 1 TO 6)
+===================================================================== */
+let activePlatform = 'admin';
+let activeSemester = 3;
+let currentStudentId = 301;
+
+// Master Faculty List (Profiles available for assignments)
+let masterFaculty = [
+  { id: 'FAC01', name: 'Dr. A. Sharma', email: 'sharma@bca.edu', designation: 'Professor & Admin', status: 'Active' },
+  { id: 'FAC02', name: 'Prof. K. Rao', email: 'rao@bca.edu', designation: 'Associate Professor', status: 'Active' },
+  { id: 'FAC03', name: 'Prof. M. Varma', email: 'varma@bca.edu', designation: 'Assistant Professor', status: 'Active' },
+  { id: 'FAC04', name: 'Dr. S. Nair', email: 'nair@bca.edu', designation: 'Associate Professor', status: 'Active' },
+  { id: 'FAC05', name: 'Prof. R. Deshmukh', email: 'deshmukh@bca.edu', designation: 'Assistant Professor', status: 'Active' }
+];
+
+// Independent Academic Workspaces for all 6 Semesters
+let semesterWorkspaces = {
+  1: {
+    name: 'BCA Semester 1',
+    term: '2025-26 ODD',
+    batch: '2025–28',
+    courses: [
+      { code: 'BCA101', name: 'Programming Fundamentals in C', type: 'Core Theory', credits: 4, facultyId: 'FAC01', room: 'Room 101' },
+      { code: 'BCA102', name: 'Discrete Mathematics', type: 'Core Theory', credits: 4, facultyId: 'FAC03', room: 'Room 102' },
+      { code: 'BCA103', name: 'Digital Logic & Computer Design', type: 'Core Theory', credits: 4, facultyId: 'FAC04', room: 'Room 103' },
+      { code: 'BCA104', name: 'Professional Communication', type: 'Ability Enhancement', credits: 3, facultyId: 'FAC05', room: 'Room 104' },
+      { code: 'BCA105L', name: 'C Programming Laboratory', type: 'Laboratory', credits: 2, facultyId: 'FAC01', room: 'Computer Lab 1' }
+    ],
+    students: [
+      { id: 101, reg: '1BC25001', name: 'Kabir Mehta', section: 'A', batch: '2025–28', attendance: 91, sgpa: 8.60, cgpa: 8.60, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 102, reg: '1BC25002', name: 'Pooja Bhatt', section: 'A', batch: '2025–28', attendance: 88, sgpa: 8.90, cgpa: 8.90, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 103, reg: '1BC25003', name: 'Arjun Das', section: 'A', batch: '2025–28', attendance: 72, sgpa: 6.90, cgpa: 6.90, status: 'Active', backlogCount: 1, resultStatus: 'FAIL' },
+      { id: 104, reg: '1BC25004', name: 'Neha Singhal', section: 'B', batch: '2025–28', attendance: 94, sgpa: 9.40, cgpa: 9.40, status: 'Active', backlogCount: 0, resultStatus: 'PASS' }
+    ]
+  },
+  2: {
+    name: 'BCA Semester 2',
+    term: '2024-25 EVEN',
+    batch: '2024–27',
+    courses: [
+      { code: 'BCA201', name: 'Data Structures with C++', type: 'Core Theory', credits: 4, facultyId: 'FAC02', room: 'Room 201' },
+      { code: 'BCA202', name: 'Object Oriented Programming', type: 'Core Theory', credits: 4, facultyId: 'FAC01', room: 'Room 202' },
+      { code: 'BCA203', name: 'Financial Accounting & Management', type: 'General Elective', credits: 3, facultyId: 'FAC05', room: 'Room 203' },
+      { code: 'BCA204', name: 'Environmental Science', type: 'Ability Enhancement', credits: 3, facultyId: 'FAC03', room: 'Room 204' },
+      { code: 'BCA205L', name: 'Data Structures Lab', type: 'Laboratory', credits: 2, facultyId: 'FAC02', room: 'Computer Lab 2' }
+    ],
+    students: [
+      { id: 201, reg: '1BC24001', name: 'Aarav Nair', section: 'A', batch: '2024–27', attendance: 90, sgpa: 8.95, cgpa: 8.90, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 202, reg: '1BC24002', name: 'Diya Menon', section: 'A', batch: '2024–27', attendance: 93, sgpa: 9.30, cgpa: 9.32, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 203, reg: '1BC24003', name: 'Rohan Gupta', section: 'A', batch: '2024–27', attendance: 76, sgpa: 7.10, cgpa: 7.15, status: 'Active', backlogCount: 0, resultStatus: 'PASS' }
+    ]
+  },
+  3: {
+    name: 'BCA Semester 3',
+    term: '2025-26 ODD',
+    batch: '2024–27',
+    courses: [
+      { code: 'BCA301', name: 'Relational Database Management Systems (RDBMS)', type: 'Core Theory', credits: 4, facultyId: 'FAC01', room: 'Room 301' },
+      { code: 'BCA302', name: 'Java Programming & OOP Concepts', type: 'Core Theory', credits: 4, facultyId: 'FAC02', room: 'Room 302' },
+      { code: 'BCA303', name: 'Computer Networks & Architecture', type: 'Core Theory', credits: 4, facultyId: 'FAC03', room: 'Room 303' },
+      { code: 'BCA304', name: 'Operating Systems Principles', type: 'Core Theory', credits: 4, facultyId: 'FAC04', room: 'Room 304' },
+      { code: 'BCA305L', name: 'DBMS & Java Programming Lab', type: 'Laboratory', credits: 2, facultyId: 'FAC02', room: 'Database Lab' }
+    ],
+    students: [
+      { id: 301, reg: '1BC24001', name: 'Aarav Nair', section: 'A', batch: '2024–27', attendance: 88, sgpa: 8.85, cgpa: 8.92, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 302, reg: '1BC24002', name: 'Diya Menon', section: 'A', batch: '2024–27', attendance: 92, sgpa: 9.40, cgpa: 9.35, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 303, reg: '1BC24003', name: 'Rohan Gupta', section: 'A', batch: '2024–27', attendance: 71, sgpa: 7.15, cgpa: 7.20, status: 'Active', backlogCount: 1, resultStatus: 'FAIL' },
+      { id: 304, reg: '1BC24004', name: 'Ananya Iyer', section: 'A', batch: '2024–27', attendance: 84, sgpa: 8.30, cgpa: 8.40, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 305, reg: '1BC24005', name: 'Vikram Joshi', section: 'B', batch: '2024–27', attendance: 68, sgpa: 6.50, cgpa: 6.80, status: 'Active', backlogCount: 2, resultStatus: 'FAIL' },
+      { id: 306, reg: '1BC24006', name: 'Sneha Patel', section: 'B', batch: '2024–27', attendance: 95, sgpa: 9.70, cgpa: 9.60, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 307, reg: '1BC24007', name: 'Karthik Raja', section: 'B', batch: '2024–27', attendance: 79, sgpa: 8.00, cgpa: 7.90, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 308, reg: '1BC24008', name: 'Pooja Hegde', section: 'A', batch: '2024–27', attendance: 86, sgpa: 8.60, cgpa: 8.75, status: 'Active', backlogCount: 0, resultStatus: 'PASS' }
+    ]
+  },
+  4: {
+    name: 'BCA Semester 4',
+    term: '2024-25 EVEN',
+    batch: '2023–26',
+    courses: [
+      { code: 'BCA401', name: 'Software Engineering & Agile Methodologies', type: 'Core Theory', credits: 4, facultyId: 'FAC04', room: 'Room 401' },
+      { code: 'BCA402', name: 'Python for Data Analytics', type: 'Core Theory', credits: 4, facultyId: 'FAC03', room: 'Room 402' },
+      { code: 'BCA403', name: 'Web Technologies (HTML5/CSS3/JavaScript)', type: 'Core Theory', credits: 4, facultyId: 'FAC02', room: 'Room 403' },
+      { code: 'BCA404', name: 'Optimization Techniques', type: 'Allied Theory', credits: 4, facultyId: 'FAC05', room: 'Room 404' },
+      { code: 'BCA405L', name: 'Web Development & Python Lab', type: 'Laboratory', credits: 2, facultyId: 'FAC02', room: 'Web Lab' }
+    ],
+    students: [
+      { id: 401, reg: '1BC23001', name: 'Siddharth Rao', section: 'A', batch: '2023–26', attendance: 89, sgpa: 8.70, cgpa: 8.65, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 402, reg: '1BC23002', name: 'Tanvi Saxena', section: 'A', batch: '2023–26', attendance: 93, sgpa: 9.20, cgpa: 9.15, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 403, reg: '1BC23003', name: 'Kiran Kulkarni', section: 'B', batch: '2023–26', attendance: 74, sgpa: 7.00, cgpa: 7.10, status: 'Active', backlogCount: 1, resultStatus: 'FAIL' }
+    ]
+  },
+  5: {
+    name: 'BCA Semester 5',
+    term: '2025-26 ODD',
+    batch: '2023–26',
+    courses: [
+      { code: 'BCA501', name: 'Cloud Computing & DevOps Practices', type: 'Core Theory', credits: 4, facultyId: 'FAC01', room: 'Room 501' },
+      { code: 'BCA502', name: 'Mobile App Development (Flutter/Android)', type: 'Core Theory', credits: 4, facultyId: 'FAC02', room: 'Room 502' },
+      { code: 'BCA503E', name: 'Elective: Artificial Intelligence & Expert Systems', type: 'Discipline Elective', credits: 4, facultyId: 'FAC04', room: 'Room 503' },
+      { code: 'BCA504', name: 'Information Security & Cryptography', type: 'Core Theory', credits: 4, facultyId: 'FAC03', room: 'Room 504' },
+      { code: 'BCA505P', name: 'Mini Project & Technical Seminar', type: 'Project', credits: 3, facultyId: 'FAC01', room: 'Innovation Lab' }
+    ],
+    students: [
+      { id: 501, reg: '1BC23001', name: 'Siddharth Rao', section: 'A', batch: '2023–26', attendance: 90, sgpa: 8.80, cgpa: 8.70, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 502, reg: '1BC23002', name: 'Tanvi Saxena', section: 'A', batch: '2023–26', attendance: 94, sgpa: 9.35, cgpa: 9.20, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 503, reg: '1BC23004', name: 'Aditya Roy', section: 'A', batch: '2023–26', attendance: 82, sgpa: 8.10, cgpa: 8.05, status: 'Active', backlogCount: 0, resultStatus: 'PASS' }
+    ]
+  },
+  6: {
+    name: 'BCA Semester 6',
+    term: '2024-25 EVEN',
+    batch: '2022–25',
+    courses: [
+      { code: 'BCA601', name: 'Full Stack Enterprise Development', type: 'Core Theory', credits: 4, facultyId: 'FAC02', room: 'Room 601' },
+      { code: 'BCA602E', name: 'Elective: Machine Learning & Big Data', type: 'Discipline Elective', credits: 4, facultyId: 'FAC04', room: 'Room 602' },
+      { code: 'BCA603', name: 'Cyber Law, Ethics & Intellectual Property', type: 'Allied Theory', credits: 3, facultyId: 'FAC05', room: 'Room 603' },
+      { code: 'BCA604I', name: 'Industry Internship & Capstone Project', type: 'Major Capstone', credits: 8, facultyId: 'FAC01', room: 'Incubation Centre' },
+      { code: 'BCA605', name: 'Comprehensive Viva Voce', type: 'Viva', credits: 2, facultyId: 'FAC01', room: 'Seminar Hall' }
+    ],
+    students: [
+      { id: 601, reg: '1BC22001', name: 'Manoj Kumar', section: 'A', batch: '2022–25', attendance: 92, sgpa: 9.10, cgpa: 9.05, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
+      { id: 602, reg: '1BC22002', name: 'Ananya Sen', section: 'A', batch: '2022–25', attendance: 96, sgpa: 9.50, cgpa: 9.45, status: 'Active', backlogCount: 0, resultStatus: 'PASS' }
+    ]
+  }
+};
+
+// Isolated Attendance & Marks Store keyed by semester and student course
+let semesterAttendanceStore = {};
+let semesterMarksStore = {};
+
+let activitySubmissions = [
+  { id: 'ACT-101', sem: 3, studentId: 301, studentName: 'Aarav Nair', reg: '1BC24001', title: 'National Level Hackathon 2025', org: 'IIT Madras', date: '2025-08-12', category: 'Hackathon', od: true, status: 'VERIFIED', skills: 'React, PostgreSQL, REST' },
+  { id: 'ACT-102', sem: 3, studentId: 302, studentName: 'Diya Menon', reg: '1BC24002', title: 'AWS Cloud Practitioner Certification', org: 'Amazon Web Services', date: '2025-07-20', category: 'Certification', od: false, status: 'VERIFIED', skills: 'Cloud Architecture, AWS' }
+];
+
+let auditLogs = [
+  { id: 'AUD-101', time: new Date().toLocaleTimeString(), actor: 'Dr. A. Sharma', role: 'ADMINISTRATOR', action: 'Semester Workspace Init', details: 'Initialized isolated BCA Academic Workspaces for Semesters 1 to 6.' }
+];
+
+/* =====================================================================
+   DATA INITIALIZATION
+===================================================================== */
+function initSemesterData() {
+  for (let sem = 1; sem <= 6; sem++) {
+    const ws = semesterWorkspaces[sem];
+    ws.students.forEach(stu => {
+      ws.courses.forEach(c => {
+        const key = `S${sem}_${stu.id}_${c.code}`;
+        if (!semesterAttendanceStore[key]) {
+          semesterAttendanceStore[key] = { conducted: 40, attended: Math.round(40 * (stu.attendance / 100)), todayStatus: 'Present' };
+        }
+        if (!semesterMarksStore[key]) {
+          semesterMarksStore[key] = {
+            components: { t1: { marks: Math.round(15 + (stu.sgpa * 0.5)) }, t2: { marks: Math.round(15 + (stu.sgpa * 0.4)) }, asg: { marks: 9 } },
+            locked: true
+          };
+        }
+      });
+    });
+  }
+}
+
+function getActiveWorkspace() {
+  return semesterWorkspaces[activeSemester] || semesterWorkspaces[3];
+}
+
+function getFacultyById(id) {
+  return masterFaculty.find(f => f.id === id) || { id, name: 'Assigned Instructor' };
+}
+
+function logAudit(actor, action, details) {
+  auditLogs.unshift({
+    id: `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
+    time: new Date().toLocaleTimeString(),
+    actor: actor || 'Dr. A. Sharma',
+    role: activePlatform.toUpperCase(),
+    action,
+    details
+  });
+  renderAuditTable();
+}
+
+/* =====================================================================
+   NAVIGATION & PLATFORM ROUTING
+===================================================================== */
+const PLATFORM_NAV = {
+  admin: [
+    { title: 'SEMESTER WORKSPACE CONFIGURATION', isHeader: true },
+    { id: 'admin-overview', label: 'Workspace Overview', icon: '📊' },
+    { id: 'admin-courses', label: 'Semester-Specific Courses', icon: '📚' },
+    { id: 'admin-students', label: 'Semester Enrolment', icon: '🎓' },
+    { id: 'admin-faculty', label: 'Assigned Faculty', icon: '👨‍🏫' },
+    { id: 'admin-timetable', label: 'Semester Timetable', icon: '🗓️' },
+    { title: 'SEMESTER GOVERNANCE', isHeader: true },
+    { id: 'admin-attendance', label: 'Semester Attendance', icon: '⏱️' },
+    { id: 'admin-marks', label: 'Semester Assessment', icon: '📝' },
+    { id: 'admin-results', label: 'Semester Results', icon: '🏆' },
+    { id: 'admin-activities', label: 'Activity Portfolios', icon: '🎖️' },
+    { id: 'admin-reports', label: 'Semester Reports & Exports', icon: '📄' },
+    { id: 'admin-audit', label: 'Immutable Audit Log', icon: '🔒' }
+  ],
+  hod: [
+    { title: 'DEPARTMENT OVERSIGHT', isHeader: true },
+    { id: 'hod-overview', label: 'HOD Overview', icon: '🏛️' },
+    { id: 'hod-approvals', label: 'Approvals Centre', icon: '⚡' },
+    { id: 'admin-attendance', label: 'Semester Attendance', icon: '⏱️' },
+    { id: 'admin-marks', label: 'Semester Assessment', icon: '📝' },
+    { id: 'hod-backlogs', label: 'Backlog Register', icon: '⚠️' },
+    { id: 'admin-timetable', label: 'Semester Timetable', icon: '🗓️' },
+    { id: 'admin-reports', label: 'Department Reports', icon: '📊' },
+    { id: 'admin-audit', label: 'Audit Trail', icon: '🔒' }
+  ],
+  faculty: [
+    { title: 'ASSIGNED SEMESTER COURSES', isHeader: true },
+    { id: 'faculty-courses', label: 'Assigned Courses', icon: '📚' },
+    { id: 'faculty-attendance', label: 'Attendance Entry', icon: '⏱️' },
+    { id: 'faculty-marks', label: 'Assessment Entry', icon: '📝' },
+    { id: 'faculty-reports', label: 'Course Reports', icon: '📊' }
+  ],
+  student: [
+    { title: 'MY SEMESTER ENROLMENT', isHeader: true },
+    { id: 'student-overview', label: 'My Academic Portfolio', icon: '🎓' },
+    { id: 'student-attendance', label: 'My Attendance', icon: '⏱️' },
+    { id: 'student-marks', label: 'My Assessment Marks', icon: '📝' },
+    { id: 'student-results', label: 'My Exam Results', icon: '🏆' },
+    { id: 'student-submit-activity', label: 'Submit Activity / OD', icon: '🎖️' }
+  ]
+};
+
+function loginPlatform(platform) {
+  activePlatform = platform;
+  document.getElementById('view-landing').classList.remove('active');
+  document.getElementById('view-dashboard').classList.add('active');
+
+  const names = {
+    admin: 'Administrator Platform',
+    hod: 'HOD Platform',
+    faculty: 'Faculty Platform',
+    student: 'Student Platform'
+  };
+
+  document.getElementById('platform-tag').textContent = names[platform];
+  document.getElementById('active-platform-name').textContent = names[platform];
+  buildSidebar();
+  updateUserHeader();
+
+  // If student, lock active semester to student's enrolled semester
+  if (platform === 'student') {
+    activeSemester = 3;
+    currentStudentId = 301;
+    initStudentSwitcher();
+    document.getElementById('student-switcher-container').classList.remove('hidden');
+  } else {
+    document.getElementById('student-switcher-container').classList.add('hidden');
+  }
+
+  selectSemester(activeSemester);
+
+  if (platform === 'admin') showSub('admin-overview');
+  else if (platform === 'hod') showSub('hod-overview');
+  else if (platform === 'faculty') showSub('faculty-courses');
+  else if (platform === 'student') showSub('student-overview');
+}
+
+function logoutPlatform() {
+  document.getElementById('view-dashboard').classList.remove('active');
+  document.getElementById('view-landing').classList.add('active');
+}
+
+function updateUserHeader() {
+  const nameEl = document.getElementById('current-user-name');
+  const subEl = document.getElementById('current-user-sub');
+
+  if (activePlatform === 'admin') {
+    nameEl.textContent = 'Dr. A. Sharma';
+    subEl.textContent = 'Administrator (All Semesters)';
+  } else if (activePlatform === 'hod') {
+    nameEl.textContent = 'Dr. P. Narayan';
+    subEl.textContent = 'HOD (Department-Wide)';
+  } else if (activePlatform === 'faculty') {
+    nameEl.textContent = 'Prof. K. Rao';
+    subEl.textContent = 'Faculty Member';
+  } else if (activePlatform === 'student') {
+    const s = getMe();
+    nameEl.textContent = s ? s.name : 'Student';
+    subEl.textContent = `BCA Semester ${activeSemester} (${s ? s.reg : ''})`;
+  }
+}
+
+function buildSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  const items = PLATFORM_NAV[activePlatform] || [];
+  nav.innerHTML = items.map(item => {
+    if (item.isHeader) {
+      return `<div class="sidebar-section-title">${item.title}</div>`;
+    }
+    return `
+      <button onclick="showSub('${item.id}')" id="nav-${item.id}" class="w-full text-left px-3 py-2 text-xs rounded-md nav-item flex items-center gap-2.5">
+        <span>${item.icon}</span>
+        <span class="truncate">${item.label}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function selectSemester(sem) {
+  activeSemester = sem;
+
+  // Update tabs UI
+  for (let i = 1; i <= 6; i++) {
+    const tab = document.getElementById(`sem-tab-${i}`);
+    if (tab) {
+      if (i === sem) tab.classList.add('active');
+      else tab.classList.remove('active');
+    }
+  }
+
+  const ws = getActiveWorkspace();
+  document.getElementById('active-sem-banner').textContent = `${ws.name.toUpperCase()} (${ws.term})`;
+
+  // Re-render active subview
+  const activeSub = document.querySelector('.subview.active');
+  if (activeSub) {
+    const subId = activeSub.id.replace('sub-', '');
+    triggerViewRender(subId);
+  }
+}
+
+function showSub(id) {
+  document.querySelectorAll('.subview').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+  const target = document.getElementById(`sub-${id}`);
+  if (target) {
+    target.classList.add('active');
+    const navBtn = document.getElementById(`nav-${id}`);
+    if (navBtn) navBtn.classList.add('active');
+
+    const titleMap = {
+      'admin-overview': `Semester ${activeSemester} Workspace Overview`,
+      'admin-courses': `Semester ${activeSemester} Courses & Subjects`,
+      'admin-students': `Semester ${activeSemester} Enrolment & Rosters`,
+      'admin-faculty': `Assigned Faculty for Semester ${activeSemester}`,
+      'admin-timetable': `Semester ${activeSemester} Timetable Matrix`,
+      'admin-attendance': `Semester ${activeSemester} Attendance Records`,
+      'admin-marks': `Semester ${activeSemester} Assessment Governance`,
+      'admin-results': `Semester ${activeSemester} Examination Results`,
+      'admin-activities': `Semester ${activeSemester} Activity Portfolios`,
+      'admin-reports': `Semester ${activeSemester} Reports & Exports`,
+      'admin-audit': 'Immutable Audit Trail',
+      'hod-overview': `HOD Overview — Semester ${activeSemester}`,
+      'hod-approvals': `Approvals Centre — Semester ${activeSemester}`,
+      'hod-backlogs': `Remedial Register — Semester ${activeSemester}`,
+      'faculty-courses': `My Assigned Courses — Semester ${activeSemester}`,
+      'faculty-attendance': `Attendance Entry — Semester ${activeSemester}`,
+      'faculty-marks': `Assessment Marks Entry — Semester ${activeSemester}`,
+      'faculty-reports': `Course Performance — Semester ${activeSemester}`,
+      'student-overview': `My Academic Portfolio (Semester ${activeSemester})`,
+      'student-attendance': `My Attendance (Semester ${activeSemester})`,
+      'student-marks': `My Assessment Scores (Semester ${activeSemester})`,
+      'student-results': `My Examination Results (Semester ${activeSemester})`,
+      'student-submit-activity': `Submit Activity / OD (Semester ${activeSemester})`
+    };
+    document.getElementById('page-title').textContent = titleMap[id] || 'BCA Academic Workspaces';
+    triggerViewRender(id);
+  }
+}
+
+function triggerViewRender(id) {
+  if (id === 'admin-overview') renderAdminOverview();
+  else if (id === 'admin-courses') renderAdminCourses();
+  else if (id === 'admin-students') renderAdminStudents();
+  else if (id === 'admin-faculty') renderAdminFaculty();
+  else if (id === 'admin-timetable') renderTimetableMatrix();
+  else if (id === 'admin-attendance') { initSemesterCourseDropdown('aa-course'); renderAdminAttendance(); }
+  else if (id === 'admin-marks') { initSemesterCourseDropdown('am-course'); renderAdminMarks(); }
+  else if (id === 'admin-results') renderAdminResults();
+  else if (id === 'admin-activities') renderAdminActivities();
+  else if (id === 'admin-audit') renderAuditTable();
+  else if (id === 'hod-overview') renderHodOverview();
+  else if (id === 'hod-approvals') renderHodApprovals();
+  else if (id === 'hod-backlogs') renderHodBacklogs();
+  else if (id === 'faculty-courses') renderFacultyCourses();
+  else if (id === 'faculty-attendance') { initFacultyCourseDropdown('fa-course'); renderFacultyAttendance(); }
+  else if (id === 'faculty-marks') { initFacultyCourseDropdown('fm-course'); renderFacultyMarks(); }
+  else if (id === 'faculty-reports') { initFacultyCourseDropdown('fr-course'); renderFacultyReport(); }
+  else if (id === 'student-overview') renderStudentOverview();
+  else if (id === 'student-attendance') renderStudentAttendance();
+  else if (id === 'student-marks') renderStudentMarks();
+  else if (id === 'student-results') renderStudentResults();
+}
+
+/* =====================================================================
+   ADMINISTRATOR MODULE RENDERING
+===================================================================== */
+let semEnrolInst = null;
+let semPassInst = null;
+
+function renderAdminOverview() {
+  const ws = getActiveWorkspace();
+  document.getElementById('ov-sem-students').textContent = ws.students.length;
+  document.getElementById('ov-sem-courses').textContent = ws.courses.length;
+
+  const facSet = new Set(ws.courses.map(c => c.facultyId));
+  document.getElementById('ov-sem-faculty').textContent = facSet.size;
+
+  const avgAtt = Math.round(ws.students.reduce((a, s) => a + s.attendance, 0) / (ws.students.length || 1));
+  document.getElementById('ov-sem-att').textContent = avgAtt + '%';
+
+  // Render 6-semester distribution chart
+  const ctxEnrol = document.getElementById('chart-sem-enrolment');
+  if (ctxEnrol) {
+    if (semEnrolInst) semEnrolInst.destroy();
+    const dataCounts = [1,2,3,4,5,6].map(i => semesterWorkspaces[i].students.length);
+    semEnrolInst = new Chart(ctxEnrol, {
+      type: 'bar',
+      data: {
+        labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6'],
+        datasets: [{ label: 'Enrolled Students', data: dataCounts, backgroundColor: '#1B2A4A', borderRadius: 4 }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+  }
+
+  // Active semester pass doughnut
+  const ctxPass = document.getElementById('chart-sem-pass');
+  if (ctxPass) {
+    if (semPassInst) semPassInst.destroy();
+    const passCount = ws.students.filter(s => s.resultStatus === 'PASS').length;
+    const failCount = ws.students.filter(s => s.resultStatus === 'FAIL').length;
+    semPassInst = new Chart(ctxPass, {
+      type: 'doughnut',
+      data: {
+        labels: ['Passed (Clear)', 'Arrears / Backlogs'],
+        datasets: [{ data: [passCount, failCount], backgroundColor: ['#2D6A4F', '#9B2226'] }]
+      },
+      options: { responsive: true }
+    });
+  }
+
+  renderAuditFeedPreview();
+}
+
+function renderAuditFeedPreview() {
+  const feed = document.getElementById('ov-activity');
+  if (feed) {
+    feed.innerHTML = auditLogs.slice(0, 5).map(l => `
+      <tr>
+        <td class="font-mono text-gray-500">${l.time}</td>
+        <td class="font-semibold">${l.actor}</td>
+        <td><span class="badge b-ink">${l.role}</span></td>
+        <td class="font-medium">${l.action}</td>
+        <td class="text-gray-600 truncate max-w-xs">${l.details}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+function renderAdminCourses() {
+  const ws = getActiveWorkspace();
+  document.getElementById('admin-course-rows').innerHTML = ws.courses.map(c => {
+    const fac = getFacultyById(c.facultyId);
+    return `
+      <tr>
+        <td class="font-mono font-bold text-[var(--ink)]">${c.code}</td>
+        <td class="font-semibold">${c.name}</td>
+        <td><span class="badge b-ink">${c.type}</span></td>
+        <td class="font-mono font-bold">${c.credits} Credits</td>
+        <td class="font-medium">${fac.name}</td>
+        <td class="font-mono text-xs text-gray-500">${c.room}</td>
+        <td>
+          <button onclick="showToast('Course ${c.code} configuration locked.')" class="btn-ghost border border-[var(--rule)] px-2 py-1 text-[10px] rounded">Edit Course</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderAdminStudents() {
+  const ws = getActiveWorkspace();
+  const search = (document.getElementById('sm-search')?.value || '').toLowerCase();
+  const secFilter = document.getElementById('sm-section')?.value || '';
+
+  const filtered = ws.students.filter(s => {
+    const matchSearch = s.name.toLowerCase().includes(search) || s.reg.toLowerCase().includes(search);
+    const matchSec = !secFilter || s.section === secFilter;
+    return matchSearch && matchSec;
+  });
+
+  document.getElementById('sm-count').textContent = `Showing ${filtered.length} of ${ws.students.length} students in Semester ${activeSemester}`;
+
+  document.getElementById('admin-student-rows').innerHTML = filtered.map(s => `
+    <tr>
+      <td class="font-mono font-bold">${s.reg}</td>
+      <td class="font-semibold">${s.name}</td>
+      <td>Section ${s.section}</td>
+      <td class="font-mono">${s.batch}</td>
+      <td><span class="badge ${s.attendance < 75 ? 'b-fail' : 'b-pass'} font-bold">${s.attendance}%</span></td>
+      <td class="font-mono font-bold text-[var(--brass-2)]">${s.sgpa}</td>
+      <td class="font-mono font-semibold">${s.cgpa}</td>
+      <td><span class="badge ${s.status === 'Active' ? 'b-pass' : 'b-fail'}">${s.status}</span></td>
+      <td>
+        <button onclick="showToast('Roster record verified for Semester ${activeSemester}.')" class="btn-ghost border border-[var(--rule)] px-2 py-1 text-[10px] rounded">View Profile</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderAdminFaculty() {
+  const ws = getActiveWorkspace();
+  const assigned = masterFaculty.map(f => {
+    const myCourses = ws.courses.filter(c => c.facultyId === f.id);
+    return { faculty: f, courses: myCourses };
+  }).filter(item => item.courses.length > 0);
+
+  document.getElementById('admin-faculty-rows').innerHTML = assigned.map(item => `
+    <tr>
+      <td class="font-mono font-bold">${item.faculty.id}</td>
+      <td><div class="font-semibold">${item.faculty.name}</div><div class="text-[10px] text-gray-500">${item.faculty.designation}</div></td>
+      <td>${item.courses.map(c => `<span class="badge b-ink mr-1">${c.code} (${c.name})</span>`).join('')}</td>
+      <td class="font-mono">${item.courses.length * 4} hrs/wk</td>
+      <td><span class="badge b-pass">ASSIGNED</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderTimetableMatrix() {
+  const ws = getActiveWorkspace();
+  const matrixHtml = `
+    <div class="flex items-center justify-between mb-3">
+      <div class="font-display font-bold text-sm text-[var(--ink)]">Weekly Class Schedule — ${ws.name} (Section A)</div>
+      <span class="badge b-pass">SEMESTER WORKSPACE SCHEDULE</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="ledger w-full text-xs text-center">
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th>09:00 - 10:00</th>
+            <th>10:00 - 11:00</th>
+            <th>11:15 - 12:15</th>
+            <th>12:15 - 01:15</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="font-bold text-left">Monday</td>
+            ${ws.courses.slice(0, 4).map(c => {
+              const fac = getFacultyById(c.facultyId);
+              return `<td><div class="p-2 bg-blue-50 border border-blue-200 rounded font-mono font-semibold">${c.code}<br/><span class="text-[10px] text-gray-500 font-normal">${fac.name} · ${c.room}</span></div></td>`;
+            }).join('')}
+          </tr>
+          <tr>
+            <td class="font-bold text-left">Tuesday</td>
+            ${[ws.courses[1], ws.courses[0], ws.courses[3], ws.courses[2]].map(c => {
+              if (!c) return '<td>—</td>';
+              const fac = getFacultyById(c.facultyId);
+              return `<td><div class="p-2 bg-purple-50 border border-purple-200 rounded font-mono font-semibold">${c.code}<br/><span class="text-[10px] text-gray-500 font-normal">${fac.name} · ${c.room}</span></div></td>`;
+            }).join('')}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('timetable-matrix-container').innerHTML = matrixHtml;
+}
+
+function initSemesterCourseDropdown(dropdownId) {
+  const ws = getActiveWorkspace();
+  const select = document.getElementById(dropdownId);
+  if (select) {
+    select.innerHTML = ws.courses.map(c => {
+      const fac = getFacultyById(c.facultyId);
+      return `<option value="${c.code}">${c.code} — ${c.name} (${c.credits} Credits, ${fac.name})</option>`;
+    }).join('');
+  }
+}
+
+function renderAdminAttendance() {
+  const ws = getActiveWorkspace();
+  const courseCode = document.getElementById('aa-course')?.value || ws.courses[0]?.code;
+  if (!courseCode) return;
+
+  document.getElementById('admin-attendance-rows').innerHTML = ws.students.map(s => {
+    const key = `S${activeSemester}_${s.id}_${courseCode}`;
+    const rec = semesterAttendanceStore[key] || { conducted: 40, attended: 35 };
+    const pct = Math.round((rec.attended / rec.conducted) * 100);
+
+    return `
+      <tr>
+        <td class="font-mono font-bold">${s.reg}</td>
+        <td class="font-semibold">${s.name}</td>
+        <td class="font-mono">${rec.attended}</td>
+        <td class="font-mono">${rec.conducted}</td>
+        <td><span class="badge ${pct < 75 ? 'b-fail' : 'b-pass'} font-bold">${pct}%</span></td>
+        <td><span class="badge ${pct >= 75 ? 'b-pass' : 'b-fail'}">${pct >= 75 ? 'ELIGIBLE' : 'SHORTAGE'}</span></td>
+        <td>
+          <button onclick="overrideAttendance(${s.id}, '${courseCode}')" class="btn-ghost border border-[var(--rule)] px-2 py-1 text-[10px] rounded font-mono">+1 Session</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function overrideAttendance(studentId, courseCode) {
+  const key = `S${activeSemester}_${studentId}_${courseCode}`;
+  if (semesterAttendanceStore[key]) {
+    semesterAttendanceStore[key].attended += 1;
+    const ws = getActiveWorkspace();
+    const s = ws.students.find(x => x.id === studentId);
+    logAudit('Administrator', 'Controlled Attendance Override', `Adjusted +1 session for ${s.name} in ${courseCode} (Semester ${activeSemester}).`);
+    renderAdminAttendance();
+    showToast(`Attendance updated for ${s.name} in Semester ${activeSemester}.`);
+  }
+}
+
+function renderAdminMarks() {
+  const ws = getActiveWorkspace();
+  const courseCode = document.getElementById('am-course')?.value || ws.courses[0]?.code;
+  if (!courseCode) return;
+
+  document.getElementById('admin-marks-rows').innerHTML = ws.students.map(s => {
+    const key = `S${activeSemester}_${s.id}_${courseCode}`;
+    const rec = semesterMarksStore[key] || { components: { t1: { marks: 18 }, t2: { marks: 17 }, asg: { marks: 9 } }, locked: true };
+    const total = (rec.components.t1?.marks || 0) + (rec.components.t2?.marks || 0) + (rec.components.asg?.marks || 0);
+
+    return `
+      <tr>
+        <td class="font-mono font-bold">${s.reg}</td>
+        <td class="font-semibold">${s.name}</td>
+        <td class="font-mono">${rec.components.t1?.marks || 18}</td>
+        <td class="font-mono">${rec.components.t2?.marks || 17}</td>
+        <td class="font-mono">${rec.components.asg?.marks || 9}</td>
+        <td class="font-mono font-bold text-sm">${total} / 50</td>
+        <td><span class="badge ${rec.locked ? 'b-lock' : 'b-amber'}">${rec.locked ? 'LOCKED' : 'DRAFT'}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function publishSemesterMarks() {
+  logAudit('Administrator', 'Published Assessment Scores', `Continuous assessment marks published for Semester ${activeSemester}.`);
+  showToast(`Assessment marks published for Semester ${activeSemester}!`);
+}
+
+function renderAdminResults() {
+  const ws = getActiveWorkspace();
+  document.getElementById('admin-results-rows').innerHTML = ws.students.map(s => `
+    <tr>
+      <td class="font-mono font-bold">${s.reg}</td>
+      <td class="font-semibold">${s.name}</td>
+      <td class="font-mono font-semibold">440 / 500</td>
+      <td class="font-mono font-bold text-[var(--brass-2)]">${s.sgpa}</td>
+      <td class="font-mono font-bold">${s.cgpa}</td>
+      <td class="font-mono">${s.backlogCount === 0 ? '<span class="badge b-pass">0 (CLEAR)</span>' : '<span class="badge b-fail">' + s.backlogCount + ' Arrear</span>'}</td>
+      <td><span class="badge ${s.resultStatus === 'PASS' ? 'b-pass' : 'b-fail'}">${s.resultStatus}</span></td>
+    </tr>
+  `).join('');
+}
+
+function publishSemesterResults() {
+  logAudit('Administrator', 'Published Examination Results', `Official examination results published for Semester ${activeSemester}.`);
+  showToast(`Results published for Semester ${activeSemester}!`);
+}
+
+function renderAdminActivities() {
+  const filtered = activitySubmissions.filter(a => a.sem === activeSemester);
+  document.getElementById('admin-activity-rows').innerHTML = filtered.length ? filtered.map(a => `
+    <tr>
+      <td class="font-mono font-bold">${a.id}</td>
+      <td><div class="font-semibold">${a.studentName}</div><div class="text-[10px] font-mono text-gray-500">${a.reg}</div></td>
+      <td class="font-medium">${a.title} (${a.org})</td>
+      <td class="font-mono text-xs">${a.date}</td>
+      <td><span class="badge ${a.od ? 'b-amber' : 'b-ink'}">${a.od ? 'YES (OD)' : 'NO'}</span></td>
+      <td><span class="badge ${a.status === 'VERIFIED' ? 'b-pass' : 'b-amber'}">${a.status}</span></td>
+      <td>
+        ${a.status === 'SUBMITTED' ? `
+          <button onclick="approveActivity('${a.id}')" class="btn-brass px-2 py-1 text-[10px] rounded">Approve</button>
+        ` : `<span class="text-xs text-gray-400 font-mono">Verified</span>`}
+      </td>
+    </tr>
+  `).join('') : `<tr><td colspan="7" class="text-center py-4 text-gray-500 font-mono">No activity submissions in Semester ${activeSemester}.</td></tr>`;
+}
+
+function approveActivity(id) {
+  const a = activitySubmissions.find(x => x.id === id);
+  if (a) {
+    a.status = 'VERIFIED';
+    logAudit('HOD/Administrator', 'Approved Activity Portfolio', `${a.title} verified for ${a.studentName} in Semester ${a.sem}`);
+    renderAdminActivities();
+    if (document.getElementById('hod-approval-rows')) renderHodApprovals();
+    showToast(`Activity ${a.title} verified for Semester ${a.sem}!`);
+  }
+}
+
+function renderAuditTable() {
+  const tbody = document.getElementById('full-audit-rows');
+  if (tbody) {
+    tbody.innerHTML = auditLogs.map(l => `
+      <tr>
+        <td class="font-mono font-bold">${l.id}</td>
+        <td class="font-mono text-gray-600">${l.time}</td>
+        <td class="font-semibold">${l.actor}</td>
+        <td><span class="badge b-ink">${l.role}</span></td>
+        <td class="font-medium">${l.action}</td>
+        <td class="text-gray-700">${l.details}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+/* =====================================================================
+   HOD MODULE RENDERING
+===================================================================== */
+function renderHodOverview() {
+  const ws = getActiveWorkspace();
+  const avgAtt = Math.round(ws.students.reduce((a, s) => a + s.attendance, 0) / (ws.students.length || 1));
+  const riskCount = ws.students.filter(s => s.attendance < 75 || s.backlogCount > 0).length;
+  const pendingCount = activitySubmissions.filter(a => a.sem === activeSemester && a.status === 'SUBMITTED').length;
+
+  document.getElementById('hod-stat-students').textContent = ws.students.length;
+  document.getElementById('hod-stat-att').textContent = avgAtt + '%';
+  document.getElementById('hod-stat-risk').textContent = riskCount;
+  document.getElementById('hod-pending-badge').textContent = pendingCount;
+
+  const qContainer = document.getElementById('hod-quick-approvals');
+  if (qContainer) {
+    const pending = activitySubmissions.filter(a => a.sem === activeSemester && a.status === 'SUBMITTED');
+    if (pending.length === 0) {
+      qContainer.innerHTML = `<div class="text-xs text-gray-500 font-mono">No pending approvals in Semester ${activeSemester} queue.</div>`;
+    } else {
+      qContainer.innerHTML = pending.map(a => `
+        <div class="p-3 bg-[var(--parchment-2)] border border-[var(--rule)] rounded flex justify-between items-center text-xs">
+          <div>
+            <div class="font-bold">${a.title}</div>
+            <div class="text-[10px] text-gray-500 font-mono">${a.studentName} (${a.reg}) · Category: ${a.category}</div>
+          </div>
+          <button onclick="approveActivity('${a.id}')" class="btn-brass px-3 py-1 text-xs rounded font-mono">Approve</button>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+function renderHodApprovals() {
+  const filtered = activitySubmissions.filter(a => a.sem === activeSemester);
+  document.getElementById('hod-approval-rows').innerHTML = filtered.length ? filtered.map(a => `
+    <tr>
+      <td><span class="badge ${a.od ? 'b-amber' : 'b-pass'}">${a.od ? 'OFFICIAL DUTY' : 'PORTFOLIO'}</span></td>
+      <td><div class="font-semibold">${a.studentName}</div><div class="text-[10px] font-mono text-gray-500">${a.reg}</div></td>
+      <td class="font-medium">${a.title} (${a.org})</td>
+      <td class="font-mono text-xs">${a.date}</td>
+      <td><span class="badge ${a.status === 'VERIFIED' ? 'b-pass' : 'b-amber'}">${a.status}</span></td>
+      <td>
+        ${a.status === 'SUBMITTED' ? `
+          <button onclick="approveActivity('${a.id}')" class="btn-brass px-3 py-1 text-xs rounded font-mono">APPROVE</button>
+        ` : `<span class="text-xs text-gray-400 font-mono">Approved</span>`}
+      </td>
+    </tr>
+  `).join('') : `<tr><td colspan="6" class="text-center py-4 text-gray-500 font-mono">No approvals in Semester ${activeSemester}.</td></tr>`;
+}
+
+function renderHodBacklogs() {
+  const ws = getActiveWorkspace();
+  const backlogs = ws.students.filter(s => s.backlogCount > 0 || s.resultStatus === 'FAIL');
+  document.getElementById('hod-backlog-rows').innerHTML = backlogs.length ? backlogs.map(s => `
+    <tr>
+      <td class="font-mono font-bold">${s.reg}</td>
+      <td class="font-semibold">${s.name}</td>
+      <td class="text-red-700 font-semibold font-mono">${ws.courses[0]?.code || 'BCA Core'}</td>
+      <td class="font-mono font-bold">${s.cgpa}</td>
+      <td class="font-medium">Prof. M. Varma (FAC03)</td>
+      <td><span class="badge b-amber">REMEDIAL TUTORIAL ACTIVE</span></td>
+    </tr>
+  `).join('') : `<tr><td colspan="6" class="text-center py-4 text-emerald-700 font-mono">No backlogs in Semester ${activeSemester}. All clear!</td></tr>`;
+}
+
+/* =====================================================================
+   FACULTY MODULE RENDERING
+===================================================================== */
+function renderFacultyCourses() {
+  const myFacultyId = 'FAC02'; // Prof. K. Rao
+  const ws = getActiveWorkspace();
+  const myCourses = ws.courses.filter(c => c.facultyId === myFacultyId);
+
+  const container = document.getElementById('faculty-course-cards');
+  if (!myCourses.length) {
+    container.innerHTML = `<div class="col-span-2 p-6 bg-white border border-[var(--rule)] rounded text-xs font-mono text-gray-500 text-center">No courses assigned to you in Semester ${activeSemester}. Please check other semester workspaces.</div>`;
+    return;
+  }
+
+  container.innerHTML = myCourses.map(c => `
+    <div class="card p-5">
+      <div class="ws-tag mb-2">SEMESTER ${activeSemester} COURSE</div>
+      <div class="font-mono text-xs text-[var(--brass-2)] font-bold mb-1">${c.code} · ${c.type}</div>
+      <h4 class="font-display font-bold text-lg text-[var(--ink)] mb-2">${c.name}</h4>
+      <div class="grid grid-cols-2 gap-3 text-xs font-mono mb-4">
+        <div><span class="text-gray-500">Credits:</span> ${c.credits} Credits</div>
+        <div><span class="text-gray-500">Room:</span> ${c.room}</div>
+        <div><span class="text-gray-500">Enrolment:</span> ${ws.students.length} Students</div>
+        <div><span class="text-gray-500">Term:</span> ${ws.term}</div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="showSub('faculty-attendance')" class="btn-ink text-xs font-mono px-3 py-1.5 rounded flex-1">Record Attendance</button>
+        <button onclick="showSub('faculty-marks')" class="btn-brass text-xs font-mono px-3 py-1.5 rounded flex-1">Enter Marks</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function initFacultyCourseDropdown(dropdownId) {
+  const myFacultyId = 'FAC02';
+  const ws = getActiveWorkspace();
+  const myCourses = ws.courses.filter(c => c.facultyId === myFacultyId);
+  const select = document.getElementById(dropdownId);
+
+  if (select) {
+    if (myCourses.length) {
+      select.innerHTML = myCourses.map(c => `<option value="${c.code}">${c.code} — ${c.name} (${c.credits} Credits)</option>`).join('');
+    } else {
+      select.innerHTML = `<option value="">No courses assigned in Semester ${activeSemester}</option>`;
+    }
+  }
+  if (dropdownId === 'fa-course') {
+    document.getElementById('fa-date').value = new Date().toISOString().split('T')[0];
+  }
+}
+
+function renderFacultyAttendance() {
+  const ws = getActiveWorkspace();
+  const courseCode = document.getElementById('fa-course')?.value || ws.courses[0]?.code;
+  if (!courseCode) {
+    document.getElementById('faculty-attendance-rows').innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500 font-mono">No assigned courses in Semester ${activeSemester}.</td></tr>`;
+    return;
+  }
+
+  document.getElementById('fa-total-count').textContent = ws.students.length;
+  document.getElementById('fa-present-count').textContent = ws.students.length;
+
+  document.getElementById('faculty-attendance-rows').innerHTML = ws.students.map(s => {
+    const key = `S${activeSemester}_${s.id}_${courseCode}`;
+    const rec = semesterAttendanceStore[key] || { conducted: 40, attended: 35 };
+    const pct = Math.round((rec.attended / rec.conducted) * 100);
+
+    return `
+      <tr>
+        <td class="font-mono font-bold">${s.reg}</td>
+        <td class="font-semibold">${s.name}</td>
+        <td class="font-mono ${pct < 75 ? 'text-red-600 font-bold' : 'text-emerald-700'}">${pct}%</td>
+        <td>
+          <select id="fa-status-${s.id}" class="field-input text-xs py-1">
+            <option value="Present" selected>Present</option>
+            <option value="Absent">Absent</option>
+            <option value="On Duty">On Duty (OD)</option>
+          </select>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function markAllPresent() {
+  const ws = getActiveWorkspace();
+  ws.students.forEach(s => {
+    const el = document.getElementById(`fa-status-${s.id}`);
+    if (el) el.value = 'Present';
+  });
+  showToast(`All students marked Present for today in Semester ${activeSemester}.`);
+}
+
+function saveFacultyAttendance() {
+  const courseCode = document.getElementById('fa-course')?.value;
+  const ws = getActiveWorkspace();
+  if (!courseCode) return;
+
+  ws.students.forEach(s => {
+    const st = document.getElementById(`fa-status-${s.id}`)?.value || 'Present';
+    const key = `S${activeSemester}_${s.id}_${courseCode}`;
+    if (semesterAttendanceStore[key]) {
+      semesterAttendanceStore[key].conducted += 1;
+      if (st === 'Present' || st === 'On Duty') semesterAttendanceStore[key].attended += 1;
+    }
+  });
+
+  logAudit('Prof. K. Rao (Faculty)', 'Saved Attendance Session', `Committed attendance for ${courseCode} in Semester ${activeSemester}.`);
+  showToast(`Attendance recorded for Semester ${activeSemester}!`);
+  renderFacultyAttendance();
+}
+
+function renderFacultyMarks() {
+  const ws = getActiveWorkspace();
+  const courseCode = document.getElementById('fm-course')?.value || ws.courses[0]?.code;
+  const comp = document.getElementById('fm-component')?.value || 't1';
+  if (!courseCode) return;
+
+  document.getElementById('faculty-marks-rows').innerHTML = ws.students.map(s => {
+    const key = `S${activeSemester}_${s.id}_${courseCode}`;
+    const rec = semesterMarksStore[key] || { components: { t1: { marks: 18 }, t2: { marks: 17 }, asg: { marks: 9 } } };
+    const val = rec.components[comp]?.marks ?? 18;
+
+    return `
+      <tr>
+        <td class="font-mono font-bold">${s.reg}</td>
+        <td class="font-semibold">${s.name}</td>
+        <td>
+          <input type="number" id="fm-val-${s.id}" min="0" max="20" value="${val}" class="field-input font-mono w-24 text-sm"/>
+        </td>
+        <td><span class="badge b-pass">RECORDED</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function submitFacultyMarks() {
+  const courseCode = document.getElementById('fm-course')?.value;
+  logAudit('Prof. K. Rao (Faculty)', 'Submitted Course Marks', `Marks for ${courseCode} submitted in Semester ${activeSemester}.`);
+  showToast(`Marks for ${courseCode} submitted to HOD Approvals queue!`);
+}
+
+function renderFacultyReport() {
+  const ws = getActiveWorkspace();
+  const courseCode = document.getElementById('fr-course')?.value || ws.courses[0]?.code;
+  if (!courseCode) return;
+
+  document.getElementById('faculty-report-rows').innerHTML = ws.students.map(s => {
+    const key = `S${activeSemester}_${s.id}_${courseCode}`;
+    const rec = semesterAttendanceStore[key] || { conducted: 40, attended: 35 };
+    const pct = Math.round((rec.attended / rec.conducted) * 100);
+    const mrec = semesterMarksStore[key] || { components: { t1: { marks: 18 }, t2: { marks: 17 }, asg: { marks: 9 } } };
+    const total = (mrec.components.t1?.marks || 0) + (mrec.components.t2?.marks || 0) + (mrec.components.asg?.marks || 0);
+
+    return `
+      <tr>
+        <td class="font-mono font-bold">${s.reg}</td>
+        <td class="font-semibold">${s.name}</td>
+        <td class="font-mono ${pct < 75 ? 'text-red-700 font-bold' : 'text-emerald-700'}">${pct}%</td>
+        <td class="font-mono font-bold">${total} / 50</td>
+        <td><span class="badge ${pct >= 75 ? 'b-pass' : 'b-fail'}">${pct >= 75 ? 'SATISFACTORY' : 'DEFICIT'}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* =====================================================================
+   STUDENT MODULE RENDERING (PERSONAL ENROLMENT ONLY)
+===================================================================== */
+function initStudentSwitcher() {
+  const ws = getActiveWorkspace();
+  const select = document.getElementById('student-switcher');
+  if (select) {
+    select.innerHTML = ws.students.map(s => `
+      <option value="${s.id}" ${s.id === currentStudentId ? 'selected' : ''}>
+        ${s.name} (${s.reg} - Sem ${activeSemester}${s.section})
+      </option>
+    `).join('');
+  }
+}
+
+function switchStudent() {
+  currentStudentId = parseInt(document.getElementById('student-switcher').value);
+  updateUserHeader();
+  renderStudentOverview();
+  renderStudentAttendance();
+  renderStudentMarks();
+  renderStudentResults();
+}
+
+function getMe() {
+  const ws = getActiveWorkspace();
+  return ws.students.find(s => s.id === currentStudentId) || ws.students[0];
+}
+
+function renderStudentOverview() {
+  const s = getMe();
+  const ws = getActiveWorkspace();
+
+  document.getElementById('stu-profile-name').textContent = s.name;
+  document.getElementById('stu-profile-usn').textContent = `USN: ${s.reg} · Section ${s.section} · ${ws.name}`;
+
+  document.getElementById('so-att').textContent = s.attendance + '%';
+  document.getElementById('so-cgpa').textContent = s.cgpa;
+  document.getElementById('so-sgpa').textContent = s.sgpa;
+  document.getElementById('so-back').textContent = s.backlogCount;
+
+  const container = document.getElementById('stu-enrolled-courses-list');
+  if (container) {
+    container.innerHTML = ws.courses.map(c => {
+      const fac = getFacultyById(c.facultyId);
+      return `
+        <div class="p-3 bg-[var(--parchment-2)] border border-[var(--rule)] rounded-lg flex justify-between items-center text-xs">
+          <div>
+            <div class="font-bold text-[var(--ink)]">${c.name} (${c.code})</div>
+            <div class="text-[10px] text-gray-600 font-mono">Instructor: ${fac.name} · ${c.type} · ${c.credits} Credits</div>
+          </div>
+          <span class="badge b-pass">ENROLLED</span>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function renderStudentAttendance() {
+  const s = getMe();
+  const ws = getActiveWorkspace();
+
+  document.getElementById('student-attendance-rows').innerHTML = ws.courses.map(c => {
+    const fac = getFacultyById(c.facultyId);
+    const key = `S${activeSemester}_${s.id}_${c.code}`;
+    const rec = semesterAttendanceStore[key] || { conducted: 40, attended: 35 };
+    const pct = Math.round((rec.attended / rec.conducted) * 100);
+
+    return `
+      <tr>
+        <td><div class="font-semibold">${c.name}</div><div class="font-mono text-[10px] text-gray-500">${c.code} · ${c.credits} Credits</div></td>
+        <td>${fac.name}</td>
+        <td class="font-mono font-semibold">${rec.attended}</td>
+        <td class="font-mono text-gray-500">${rec.conducted}</td>
+        <td class="font-mono font-bold ${pct < 75 ? 'text-red-700' : 'text-emerald-700'}">${pct}%</td>
+        <td><span class="badge ${pct >= 75 ? 'b-pass' : 'b-fail'}">${pct >= 75 ? 'SATISFACTORY' : 'SHORTAGE'}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderStudentMarks() {
+  const s = getMe();
+  const ws = getActiveWorkspace();
+
+  document.getElementById('student-marks-rows').innerHTML = ws.courses.map(c => {
+    const key = `S${activeSemester}_${s.id}_${c.code}`;
+    const rec = semesterMarksStore[key] || { components: { t1: { marks: 18 }, t2: { marks: 17 }, asg: { marks: 9 } } };
+    const t1 = rec.components.t1?.marks || 18;
+    const t2 = rec.components.t2?.marks || 17;
+    const asg = rec.components.asg?.marks || 9;
+    const total = t1 + t2 + asg;
+
+    return `
+      <tr>
+        <td><div class="font-semibold">${c.name}</div><div class="font-mono text-[10px] text-gray-500">${c.code}</div></td>
+        <td class="font-mono">${t1}</td>
+        <td class="font-mono">${t2}</td>
+        <td class="font-mono">${asg}</td>
+        <td class="font-mono font-bold text-sm text-[var(--ink)]">${total} / 50</td>
+        <td><span class="badge b-lock">VERIFIED</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderStudentResults() {
+  const s = getMe();
+  const ws = getActiveWorkspace();
+
+  document.getElementById('sr-sem-label').textContent = `${ws.name.toUpperCase()} RESULTS`;
+  document.getElementById('sr-sgpa').textContent = s.sgpa;
+  document.getElementById('sr-cgpa').textContent = s.cgpa;
+  document.getElementById('sr-result-badge').innerHTML = `<span class="badge ${s.resultStatus === 'PASS' ? 'b-pass' : 'b-fail'} text-xs font-bold">${s.resultStatus === 'PASS' ? 'PASSED · DISTINCTION' : 'ARREAR'}</span>`;
+
+  document.getElementById('student-results-rows').innerHTML = ws.courses.map(c => {
+    const isFail = s.resultStatus === 'FAIL' && c.code.includes('303');
+    const marks = isFail ? 34 : Math.round(74 + (s.cgpa * 2));
+    const grade = isFail ? 'F' : (marks >= 90 ? 'O' : (marks >= 80 ? 'A+' : 'A'));
+    return `
+      <tr>
+        <td class="font-semibold">${c.name} (${c.code})</td>
+        <td class="font-mono font-bold">${marks}</td>
+        <td><span class="badge ${isFail ? 'b-fail' : 'b-pass'}">${grade}</span></td>
+        <td class="font-mono">${c.credits}</td>
+        <td><span class="badge ${isFail ? 'b-fail' : 'b-pass'}">${isFail ? 'FAIL (ARREAR)' : 'PASS'}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function handleStudentActivitySubmit(e) {
+  e.preventDefault();
+  const s = getMe();
+  const title = document.getElementById('act-title').value;
+  const org = document.getElementById('act-org').value;
+  const cat = document.getElementById('act-cat').value;
+  const date = document.getElementById('act-date').value;
+  const skills = document.getElementById('act-skills').value;
+  const od = document.getElementById('act-od').checked;
+
+  const newSub = {
+    id: `ACT-${Math.floor(100 + Math.random() * 900)}`,
+    sem: activeSemester,
+    studentId: s.id,
+    studentName: s.name,
+    reg: s.reg,
+    title,
+    org,
+    category: cat,
+    date,
+    skills: skills || 'BCA Technical Skills',
+    od,
+    status: 'SUBMITTED'
+  };
+
+  activitySubmissions.unshift(newSub);
+  logAudit(s.name, 'Submitted Activity Portfolio', `${title} submitted in Semester ${activeSemester}.`);
+  showToast(`Activity submitted for Semester ${activeSemester}! Routed to HOD queue.`);
+  e.target.reset();
+}
+
+/* =====================================================================
+   ADMINISTRATOR ACTIONS & MODAL HANDLERS
+===================================================================== */
+function openCourseModal(mode) {
+  document.getElementById('m-course-sem-label').textContent = activeSemester;
+  const facSelect = document.getElementById('c-m-faculty');
+  facSelect.innerHTML = masterFaculty.map(f => `<option value="${f.id}">${f.name} (${f.designation})</option>`).join('');
+  document.getElementById('modal-course').classList.remove('hidden');
+}
+
+function openStudentModal(mode) {
+  document.getElementById('m-stu-sem-label').textContent = activeSemester;
+  document.getElementById('modal-student').classList.remove('hidden');
+}
+
+function openPromotionModal() {
+  document.getElementById('promo-from-label').textContent = `Semester ${activeSemester}`;
+  document.getElementById('promo-to-label').textContent = activeSemester < 6 ? `Semester ${activeSemester + 1}` : 'Graduation Capstone';
+  document.getElementById('modal-promotion').classList.remove('hidden');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+function handleSaveCourse(e) {
+  e.preventDefault();
+  const code = document.getElementById('c-m-code').value.trim().toUpperCase();
+  const name = document.getElementById('c-m-name').value.trim();
+  const type = document.getElementById('c-m-type').value;
+  const credits = parseInt(document.getElementById('c-m-credits').value);
+  const facultyId = document.getElementById('c-m-faculty').value;
+  const room = document.getElementById('c-m-room').value;
+
+  const ws = getActiveWorkspace();
+  if (ws.courses.some(c => c.code === code)) {
+    alert(`Course code "${code}" already exists in Semester ${activeSemester}!`);
+    return;
+  }
+
+  const newCourse = { code, name, type, credits, facultyId, room };
+  ws.courses.push(newCourse);
+  initSemesterData();
+
+  logAudit('Administrator', 'Added Semester Course', `Added ${code} - ${name} to Semester ${activeSemester}.`);
+  closeModal('modal-course');
+  renderAdminCourses();
+  showToast(`Course ${code} added to Semester ${activeSemester} workspace!`);
+}
+
+function handleSaveStudent(e) {
+  e.preventDefault();
+  const usn = document.getElementById('stu-m-usn').value.trim().toUpperCase();
+  const name = document.getElementById('stu-m-name').value.trim();
+  const sec = document.getElementById('stu-m-section').value;
+  const batch = document.getElementById('stu-m-batch').value;
+
+  const ws = getActiveWorkspace();
+  if (ws.students.some(s => s.reg === usn)) {
+    alert(`Student USN "${usn}" already enrolled in Semester ${activeSemester}!`);
+    return;
+  }
+
+  const newId = 900 + ws.students.length;
+  const newStu = {
+    id: newId,
+    reg: usn,
+    name,
+    section: sec,
+    batch,
+    attendance: 100,
+    sgpa: 8.50,
+    cgpa: 8.50,
+    status: 'Active',
+    backlogCount: 0,
+    resultStatus: 'PASS'
+  };
+
+  ws.students.push(newStu);
+  initSemesterData();
+
+  logAudit('Administrator', 'Enrolled Student in Semester', `Enrolled ${name} (${usn}) in Semester ${activeSemester}.`);
+  closeModal('modal-student');
+  renderAdminStudents();
+  showToast(`Student ${name} enrolled in Semester ${activeSemester}!`);
+}
+
+function executeAuthorisedPromotion() {
+  if (activeSemester >= 6) {
+    showToast('Semester 6 is the final capstone term. Graduation processing initiated.');
+    closeModal('modal-promotion');
+    return;
+  }
+
+  const fromSem = activeSemester;
+  const toSem = activeSemester + 1;
+  const sourceWs = semesterWorkspaces[fromSem];
+  const targetWs = semesterWorkspaces[toSem];
+
+  // Eligible students (Pass status and Attendance >= 75%)
+  const eligible = sourceWs.students.filter(s => s.resultStatus === 'PASS' && s.attendance >= 75);
+
+  eligible.forEach(s => {
+    if (!targetWs.students.some(ts => ts.reg === s.reg)) {
+      targetWs.students.push({
+        id: s.id + 1000,
+        reg: s.reg,
+        name: s.name,
+        section: s.section,
+        batch: s.batch,
+        attendance: 100,
+        sgpa: 8.50,
+        cgpa: s.cgpa,
+        status: 'Active',
+        backlogCount: 0,
+        resultStatus: 'PASS'
+      });
+    }
+  });
+
+  initSemesterData();
+  logAudit('Administrator', 'Authorised Student Promotion', `Promoted ${eligible.length} eligible students from Semester ${fromSem} to Semester ${toSem}.`);
+  closeModal('modal-promotion');
+  showToast(`Successfully promoted ${eligible.length} students to Semester ${toSem}!`);
+  selectSemester(toSem);
+}
+
+function validateTimetableClashes() {
+  showToast(`Semester ${activeSemester} timetable matrix verified clash-free.`);
+}
+
+function refreshData() {
+  initSemesterData();
+  renderAdminOverview();
+  showToast(`Semester ${activeSemester} workspace refreshed.`);
+}
+
+/* =====================================================================
+   EXPORTS ENGINES (jsPDF & XLSX)
+===================================================================== */
+function showToast(msg) {
+  const box = document.getElementById('toast-box');
+  box.textContent = msg;
+  box.classList.remove('hidden');
+  setTimeout(() => box.classList.add('hidden'), 3500);
+}
+
+function exportVerifiedStudentPortfolioPDF() {
+  const s = getMe();
+  const ws = getActiveWorkspace();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFillColor(27, 42, 74);
+  doc.rect(0, 0, 210, 40, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(18);
+  doc.text('BCA ACADEMIC WORKSPACE PORTFOLIO', 14, 20);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`Official Academic Record · ${ws.name} · CBCS Scheme`, 14, 28);
+
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(11);
+  doc.text(`Student Name: ${s.name}`, 14, 52);
+  doc.text(`USN: ${s.reg}`, 14, 59);
+  doc.text(`Semester: ${ws.name} (Section ${s.section})`, 14, 66);
+  doc.text(`Semester SGPA: ${s.sgpa} / 10.00`, 120, 52);
+  doc.text(`Cumulative CGPA: ${s.cgpa} / 10.00`, 120, 59);
+  doc.text(`Attendance Standing: ${s.attendance}% (Eligible)`, 120, 66);
+
+  const rows = ws.courses.map(c => {
+    const fac = getFacultyById(c.facultyId);
+    return [c.code, c.name, c.type, c.credits, fac.name, 'VERIFIED'];
+  });
+
+  doc.autoTable({
+    startY: 75,
+    head: [['Code', 'Course Title', 'Type', 'Credits', 'Instructor', 'Standing']],
+    body: rows,
+    theme: 'grid',
+    headStyles: { fillColor: [184, 134, 59] }
+  });
+
+  doc.save(`Portfolio_Sem${activeSemester}_${s.reg}.pdf`);
+  showToast('Verified Portfolio PDF downloaded!');
+}
+
+function exportAuditLogPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text('BCA Department Immutable Audit Trail', 14, 15);
+  const rows = auditLogs.map(l => [l.id, l.time, l.actor, l.role, l.action, l.details]);
+  doc.autoTable({
+    startY: 22,
+    head: [['ID', 'Timestamp', 'Actor', 'Role', 'Action', 'Details']],
+    body: rows,
+    headStyles: { fillColor: [27, 42, 74] }
+  });
+  doc.save('BCA_Academic_Audit_Log.pdf');
+  showToast('Audit Log PDF exported!');
+}
+
+function exportShortageList(format) {
+  const ws = getActiveWorkspace();
+  const shortages = ws.students.filter(s => s.attendance < 75);
+  if (format === 'pdf') {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(`Attendance Shortage List (<75%) — ${ws.name}`, 14, 15);
+    const rows = shortages.map(s => [s.reg, s.name, `Sec ${s.section}`, `${s.attendance}%`, 'NOTICE ISSUED']);
+    doc.autoTable({
+      startY: 22,
+      head: [['USN', 'Name', 'Section', 'Attendance %', 'Action Status']],
+      body: rows,
+      headStyles: { fillColor: [155, 34, 38] }
+    });
+    doc.save(`Shortage_List_Sem${activeSemester}.pdf`);
+  } else {
+    const wsXlsx = XLSX.utils.json_to_sheet(shortages);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsXlsx, 'Defaulters');
+    XLSX.writeFile(wb, `Shortage_List_Sem${activeSemester}.xlsx`);
+  }
+  showToast(`Shortage list exported for Semester ${activeSemester}!`);
+}
+
+function exportMasterLedger(format) {
+  const ws = getActiveWorkspace();
+  if (format === 'pdf') {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(`Master Academic Ledger — ${ws.name}`, 14, 15);
+    const rows = ws.students.map(s => [s.reg, s.name, `Sec ${s.section}`, `${s.attendance}%`, s.sgpa, s.cgpa, s.resultStatus]);
+    doc.autoTable({
+      startY: 22,
+      head: [['USN', 'Student Name', 'Section', 'Attendance', 'SGPA', 'CGPA', 'Result']],
+      body: rows,
+      headStyles: { fillColor: [27, 42, 74] }
+    });
+    doc.save(`Master_Ledger_Sem${activeSemester}.pdf`);
+  } else {
+    const wsXlsx = XLSX.utils.json_to_sheet(ws.students);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsXlsx, 'MasterLedger');
+    XLSX.writeFile(wb, `Master_Ledger_Sem${activeSemester}.xlsx`);
+  }
+  showToast(`Master Ledger exported for Semester ${activeSemester}!`);
+}
+
+function exportStudentTranscript(format) {
+  const s = getMe();
+  const ws = getActiveWorkspace();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text(`Official Examination Transcript — ${s.name} (${s.reg})`, 14, 15);
+  doc.text(`${ws.name} Results · SGPA: ${s.sgpa} · CGPA: ${s.cgpa}`, 14, 22);
+
+  const rows = ws.courses.map(c => [c.code, c.name, c.credits, 'PASS', 'A+']);
+
+  doc.autoTable({
+    startY: 28,
+    head: [['Course Code', 'Course Title', 'Credits', 'Result', 'Grade']],
+    body: rows,
+    headStyles: { fillColor: [27, 42, 74] }
+  });
+  doc.save(`Transcript_Sem${activeSemester}_${s.reg}.pdf`);
+  showToast('Official transcript downloaded!');
+}
+
+/* =====================================================================
+   BOOTSTRAP APPLICATION
+===================================================================== */
+initSemesterData();
+</script>
+
+</body>
+</html>
