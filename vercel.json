@@ -1,6 +1,7 @@
 {
-  "buildCommand": "cd academic-management-system/frontend && npm install && npm run build",
-  "outputDirectory": "academic-management-system/frontend/dist",
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "cleanUrls": true,
   "rewrites": [
     {
