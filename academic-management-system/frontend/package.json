@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "academic-management-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -10,10 +10,15 @@
   },
   "dependencies": {
     "axios": "^1.7.9",
+    "chart.js": "^4.4.7",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "lucide-react": "^0.475.0",
     "react": "^18.3.1",
+    "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
+    "react-router-dom": "^6.28.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
