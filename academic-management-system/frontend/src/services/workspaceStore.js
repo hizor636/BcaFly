@@ -1,13 +1,26 @@
 /**
  * BcaFly Unified Workspace Store
  * Manages 6-semester isolated academic datasets, persistence in localStorage,
- * academic file uploads, and state mutation helpers with audit logging.
+ * academic file uploads, timetable entries, announcements, assignments,
+ * course materials, detailed attendance, assessment marks, exam results,
+ * activity/OD workflows, helpdesk tickets, and student profile requests.
  */
 
-const STORAGE_KEY = 'bcafly_workspace_v2';
-const AUDIT_KEY = 'bcafly_audit_logs_v2';
-const ACTIVITIES_KEY = 'bcafly_activities_v2';
-const FILES_KEY = 'bcafly_academic_files_v2';
+const STORAGE_KEY = 'bcafly_workspace_v3';
+const AUDIT_KEY = 'bcafly_audit_logs_v3';
+const ACTIVITIES_KEY = 'bcafly_activities_v3';
+const FILES_KEY = 'bcafly_academic_files_v3';
+const TIMETABLE_KEY = 'bcafly_timetable_v3';
+const ANNOUNCEMENTS_KEY = 'bcafly_announcements_v3';
+const ASSIGNMENTS_KEY = 'bcafly_assignments_v3';
+const SUBMISSIONS_KEY = 'bcafly_submissions_v3';
+const MATERIALS_KEY = 'bcafly_materials_v3';
+const ATTENDANCE_KEY = 'bcafly_attendance_v3';
+const MARKS_KEY = 'bcafly_marks_v3';
+const RESULTS_KEY = 'bcafly_results_v3';
+const HELPDESK_KEY = 'bcafly_helpdesk_v3';
+const NOTIFICATIONS_KEY = 'bcafly_notifications_v3';
+const DOC_REQUESTS_KEY = 'bcafly_doc_requests_v3';
 
 export const MASTER_FACULTY = [
   { id: 'FAC01', name: 'Dr. A. Sharma', role: 'Professor & HOD', dept: 'Computer Applications', email: 'sharma@bcafly.edu', phone: '+91 98450 11223' },
@@ -62,11 +75,11 @@ export const INITIAL_SEMESTERS = {
     term: '2025-26 ODD',
     batch: '2024–27',
     courses: [
-      { id: 'c-301', code: 'BCA301', name: 'Relational Database Management Systems (RDBMS)', type: 'Core Theory', credits: 4, facultyId: 'FAC01', room: 'Room 301' },
-      { id: 'c-302', code: 'BCA302', name: 'Java Programming & OOP Concepts', type: 'Core Theory', credits: 4, facultyId: 'FAC02', room: 'Room 302' },
-      { id: 'c-303', code: 'BCA303', name: 'Computer Networks & Architecture', type: 'Core Theory', credits: 4, facultyId: 'FAC03', room: 'Room 303' },
-      { id: 'c-304', code: 'BCA304', name: 'Operating Systems Principles', type: 'Core Theory', credits: 4, facultyId: 'FAC04', room: 'Room 304' },
-      { id: 'c-305', code: 'BCA305L', name: 'DBMS & Java Programming Lab', type: 'Laboratory', credits: 2, facultyId: 'FAC02', room: 'Database Lab' }
+      { id: 'BCA301', code: 'BCA301', name: 'Relational Database Management Systems (RDBMS)', title: 'Relational Database Management Systems (RDBMS)', type: 'Core Theory', credits: 4, facultyId: 'FAC01', room: 'Room 301' },
+      { id: 'BCA302', code: 'BCA302', name: 'Java Programming & OOP Concepts', title: 'Java Programming & OOP Concepts', type: 'Core Theory', credits: 4, facultyId: 'FAC02', room: 'Room 302' },
+      { id: 'BCA303', code: 'BCA303', name: 'Computer Networks & Architecture', title: 'Computer Networks & Architecture', type: 'Core Theory', credits: 4, facultyId: 'FAC03', room: 'Room 303' },
+      { id: 'BCA304', code: 'BCA304', name: 'Operating Systems Principles', title: 'Operating Systems Principles', type: 'Core Theory', credits: 4, facultyId: 'FAC04', room: 'Room 304' },
+      { id: 'BCA305L', code: 'BCA305L', name: 'DBMS & Java Programming Lab', title: 'DBMS & Java Programming Lab', type: 'Laboratory', credits: 2, facultyId: 'FAC02', room: 'Database Lab' }
     ],
     students: [
       { id: "student-s3-001", reg: 'BCS23CA001', usn: 'BCS23CA001', name: 'Rahul Kumar', section: 'A', batch: '2024–27', attendance: 88, sgpa: 8.85, cgpa: 8.92, status: 'Active', backlogCount: 0, resultStatus: 'PASS' },
@@ -135,11 +148,677 @@ export const INITIAL_SEMESTERS = {
   }
 };
 
+export const INITIAL_TIMETABLE_ENTRIES = [
+  // Semester 3 Schedule
+  // Monday
+  { id: 'tt-301', semesterId: '3', courseId: 'BCA301', courseCode: 'BCA301', courseName: 'Relational Database Management Systems', facultyId: 'FAC01', facultyName: 'Dr. A. Sharma', dayOfWeek: 'MONDAY', startTime: '09:00', endTime: '10:00', room: 'Room 301', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-302', semesterId: '3', courseId: 'BCA302', courseCode: 'BCA302', courseName: 'Java Programming & OOP Concepts', facultyId: 'FAC02', facultyName: 'Prof. K. Rao', dayOfWeek: 'MONDAY', startTime: '10:00', endTime: '11:00', room: 'Room 302', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-303', semesterId: '3', courseId: 'BCA303', courseCode: 'BCA303', courseName: 'Computer Networks & Architecture', facultyId: 'FAC03', facultyName: 'Prof. M. Varma', dayOfWeek: 'MONDAY', startTime: '11:15', endTime: '12:15', room: 'Room 303', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-304', semesterId: '3', courseId: 'BCA305L', courseCode: 'BCA305L', courseName: 'DBMS & Java Programming Lab', facultyId: 'FAC02', facultyName: 'Prof. K. Rao', dayOfWeek: 'MONDAY', startTime: '01:15', endTime: '03:15', room: 'Database Lab', sessionType: 'LAB', status: 'SCHEDULED', notice: 'Bring completed SQL practical record notebooks' },
+  
+  // Tuesday
+  { id: 'tt-305', semesterId: '3', courseId: 'BCA302', courseCode: 'BCA302', courseName: 'Java Programming & OOP Concepts', facultyId: 'FAC02', facultyName: 'Prof. K. Rao', dayOfWeek: 'TUESDAY', startTime: '09:00', endTime: '10:00', room: 'Room 302', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-306', semesterId: '3', courseId: 'BCA304', courseCode: 'BCA304', courseName: 'Operating Systems Principles', facultyId: 'FAC04', facultyName: 'Dr. S. Nair', dayOfWeek: 'TUESDAY', startTime: '10:00', endTime: '11:00', room: 'Room 304', sessionType: 'THEORY', status: 'SUBSTITUTED', substituteFacultyId: 'FAC03', substituteFacultyName: 'Prof. M. Varma', notice: 'Guest session by Prof. M. Varma on Process Synchronization' },
+  { id: 'tt-307', semesterId: '3', courseId: 'BCA301', courseCode: 'BCA301', courseName: 'Relational Database Management Systems', facultyId: 'FAC01', facultyName: 'Dr. A. Sharma', dayOfWeek: 'TUESDAY', startTime: '11:15', endTime: '12:15', room: 'Room 301', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-308', semesterId: '3', courseId: 'BCA300', courseCode: 'SEM-301', courseName: 'Technical Seminar & Library', facultyId: 'FAC05', facultyName: 'Prof. R. Deshmukh', dayOfWeek: 'TUESDAY', startTime: '01:15', endTime: '02:15', room: 'Seminar Hall', sessionType: 'SEMINAR', status: 'SCHEDULED' },
+  
+  // Wednesday
+  { id: 'tt-309', semesterId: '3', courseId: 'BCA303', courseCode: 'BCA303', courseName: 'Computer Networks & Architecture', facultyId: 'FAC03', facultyName: 'Prof. M. Varma', dayOfWeek: 'WEDNESDAY', startTime: '09:00', endTime: '10:00', room: 'Room 303', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-310', semesterId: '3', courseId: 'BCA301', courseCode: 'BCA301', courseName: 'Relational Database Management Systems', facultyId: 'FAC01', facultyName: 'Dr. A. Sharma', dayOfWeek: 'WEDNESDAY', startTime: '10:00', endTime: '11:00', room: 'Room 301', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-311', semesterId: '3', courseId: 'BCA304', courseCode: 'BCA304', courseName: 'Operating Systems Principles', facultyId: 'FAC04', facultyName: 'Dr. S. Nair', dayOfWeek: 'WEDNESDAY', startTime: '11:15', endTime: '12:15', room: 'Room 304', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-312', semesterId: '3', courseId: 'BCA302', courseCode: 'BCA302', courseName: 'Java Programming & OOP Concepts', facultyId: 'FAC02', facultyName: 'Prof. K. Rao', dayOfWeek: 'WEDNESDAY', startTime: '01:15', endTime: '02:15', room: 'Room 302', sessionType: 'THEORY', status: 'SCHEDULED' },
+  
+  // Thursday
+  { id: 'tt-313', semesterId: '3', courseId: 'BCA304', courseCode: 'BCA304', courseName: 'Operating Systems Principles', facultyId: 'FAC04', facultyName: 'Dr. S. Nair', dayOfWeek: 'THURSDAY', startTime: '09:00', endTime: '10:00', room: 'Room 304', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-314', semesterId: '3', courseId: 'BCA303', courseCode: 'BCA303', courseName: 'Computer Networks & Architecture', facultyId: 'FAC03', facultyName: 'Prof. M. Varma', dayOfWeek: 'THURSDAY', startTime: '10:00', endTime: '11:00', room: 'Room 303', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-315', semesterId: '3', courseId: 'BCA302', courseCode: 'BCA302', courseName: 'Java Programming & OOP Concepts', facultyId: 'FAC02', facultyName: 'Prof. K. Rao', dayOfWeek: 'THURSDAY', startTime: '11:15', endTime: '12:15', room: 'Room 302', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-316', semesterId: '3', courseId: 'BCA305L', courseCode: 'BCA305L', courseName: 'DBMS & Java Programming Lab', facultyId: 'FAC01', facultyName: 'Dr. A. Sharma', dayOfWeek: 'THURSDAY', startTime: '01:15', endTime: '03:15', room: 'Java Lab', sessionType: 'LAB', status: 'SCHEDULED', notice: 'Inheritance & Interface practical evaluation today' },
+  
+  // Friday
+  { id: 'tt-317', semesterId: '3', courseId: 'BCA301', courseCode: 'BCA301', courseName: 'Relational Database Management Systems', facultyId: 'FAC01', facultyName: 'Dr. A. Sharma', dayOfWeek: 'FRIDAY', startTime: '09:00', endTime: '10:00', room: 'Room 301', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-318', semesterId: '3', courseId: 'BCA304', courseCode: 'BCA304', courseName: 'Operating Systems Principles', facultyId: 'FAC04', facultyName: 'Dr. S. Nair', dayOfWeek: 'FRIDAY', startTime: '10:00', endTime: '11:00', room: 'Room 304', sessionType: 'THEORY', status: 'SCHEDULED' },
+  { id: 'tt-319', semesterId: '3', courseId: 'BCA303', courseCode: 'BCA303', courseName: 'Computer Networks & Architecture', facultyId: 'FAC03', facultyName: 'Prof. M. Varma', dayOfWeek: 'FRIDAY', startTime: '11:15', endTime: '12:15', room: 'Room 303', sessionType: 'THEORY', status: 'CANCELLED', notice: 'Class cancelled due to Faculty Department Meeting. Compensation on Sat.' },
+  { id: 'tt-320', semesterId: '3', courseId: 'BCA300', courseCode: 'CRT-301', courseName: 'Campus Placement & Aptitude Training', facultyId: 'FAC05', facultyName: 'Prof. R. Deshmukh', dayOfWeek: 'FRIDAY', startTime: '01:15', endTime: '03:15', room: 'Auditorium 2', sessionType: 'PRACTICAL', status: 'SCHEDULED' },
+
+  // Saturday
+  { id: 'tt-321', semesterId: '3', courseId: 'BCA303', courseCode: 'BCA303', courseName: 'Computer Networks & Architecture', facultyId: 'FAC03', facultyName: 'Prof. M. Varma', dayOfWeek: 'SATURDAY', startTime: '09:30', endTime: '11:30', room: 'Room 303', sessionType: 'THEORY', status: 'SCHEDULED', notice: 'Compensatory class for Friday session' }
+];
+
+export const INITIAL_ANNOUNCEMENTS = [
+  {
+    id: 'ann-101',
+    title: 'CIA-2 Examination Schedule & Portions Published',
+    content: 'Continuous Internal Assessment 2 (CIA-2) will commence from September 10, 2026. Students must ensure strict attendance compliance of 75% or higher to be allotted hall tickets.',
+    authorId: 'FAC01',
+    authorName: 'Dr. A. Sharma (HOD)',
+    audienceType: 'SEMESTER',
+    semesterId: '3',
+    priority: 'URGENT',
+    attachments: [
+      { name: 'CIA2_Timetable_Portions_Sem3.pdf', size: '1.2 MB', url: '#' }
+    ],
+    publishedAt: '2026-08-22T09:30:00Z',
+    expiresAt: '2026-09-15T23:59:59Z',
+    isRead: false
+  },
+  {
+    id: 'ann-102',
+    title: 'Oracle Database Certification Workshop — Registration Open',
+    content: 'The Department of Computer Applications is organizing a 3-day hands-on workshop on Oracle PL/SQL & Cloud Autonomous Database. 20 OD credits available for participants.',
+    authorId: 'FAC01',
+    authorName: 'Dr. A. Sharma',
+    audienceType: 'DEPARTMENT',
+    courseId: 'BCA301',
+    priority: 'IMPORTANT',
+    attachments: [
+      { name: 'Oracle_Workshop_Brochure.pdf', size: '2.4 MB', url: '#' }
+    ],
+    publishedAt: '2026-08-20T11:00:00Z',
+    expiresAt: '2026-09-01T18:00:00Z',
+    isRead: true
+  },
+  {
+    id: 'ann-103',
+    title: 'Submission of Smart India Hackathon (SIH 2026) Ideas',
+    content: 'Teams planning to submit project proposals for SIH 2026 must upload their synopsis to the Activity/OD portal and get internal mentoring approval by Aug 28.',
+    authorId: 'FAC02',
+    authorName: 'Prof. K. Rao',
+    audienceType: 'COLLEGE',
+    priority: 'NORMAL',
+    attachments: [],
+    publishedAt: '2026-08-18T14:15:00Z',
+    expiresAt: '2026-08-30T17:00:00Z',
+    isRead: true
+  },
+  {
+    id: 'ann-104',
+    title: 'Operating Systems Lab Rescheduling for Section A',
+    content: 'Due to network maintenance in Lab 2, Tuesday practical sessions will be moved to Thursday 01:15 PM in Java Lab.',
+    authorId: 'FAC04',
+    authorName: 'Dr. S. Nair',
+    audienceType: 'COURSE',
+    courseId: 'BCA304',
+    priority: 'NORMAL',
+    attachments: [],
+    publishedAt: '2026-08-15T16:00:00Z',
+    expiresAt: '2026-08-25T18:00:00Z',
+    isRead: true
+  }
+];
+
+export const INITIAL_ASSIGNMENTS = [
+  {
+    id: 'asg-301',
+    courseId: 'BCA301',
+    courseCode: 'BCA301',
+    courseName: 'Relational Database Management Systems',
+    title: 'Assignment 2: Complex SQL Queries & Relational Algebra Normalization',
+    description: 'Design 3NF / BCNF normalized schema for Hospital Management and execute 10 multi-table nested SQL queries.',
+    instructions: '1. Include schema diagrams. 2. Provide execution screenshots with timing. 3. Submit PDF with zipped .sql script.',
+    maxMarks: 20,
+    assignedAt: '2026-08-15T10:00:00Z',
+    dueAt: '2026-08-28T23:59:59Z',
+    allowLateSubmission: true,
+    allowResubmission: true,
+    attachments: ['Assignment_2_Problem_Statement.pdf'],
+    createdBy: 'Dr. A. Sharma'
+  },
+  {
+    id: 'asg-302',
+    courseId: 'BCA302',
+    courseCode: 'BCA302',
+    courseName: 'Java Programming & OOP Concepts',
+    title: 'Mini Project: Multithreaded Banking Simulation in Java',
+    description: 'Implement producer-consumer pattern, deadlock prevention, and synchronized account balance transfers.',
+    instructions: 'Follow standard Java coding guidelines. Document exception handling test cases.',
+    maxMarks: 25,
+    assignedAt: '2026-08-10T09:00:00Z',
+    dueAt: '2026-08-26T23:59:59Z',
+    allowLateSubmission: false,
+    allowResubmission: true,
+    attachments: ['Java_Multithreading_Specs.pdf'],
+    createdBy: 'Prof. K. Rao'
+  },
+  {
+    id: 'asg-303',
+    courseId: 'BCA303',
+    courseCode: 'BCA303',
+    courseName: 'Computer Networks & Architecture',
+    title: 'Assignment 1: Packet Sniffing & Subnetting Analysis using Wireshark',
+    description: 'Analyze TCP 3-way handshake, DNS query-response latency, and construct Classless Inter-Domain Routing (CIDR) subnet chart.',
+    instructions: 'Attach pcapng trace file or export screenshot proofs for 5 distinct protocol headers.',
+    maxMarks: 15,
+    assignedAt: '2026-08-01T10:00:00Z',
+    dueAt: '2026-08-18T23:59:59Z',
+    allowLateSubmission: true,
+    allowResubmission: false,
+    attachments: ['Wireshark_Lab_Guide.pdf'],
+    createdBy: 'Prof. M. Varma'
+  },
+  {
+    id: 'asg-304',
+    courseId: 'BCA304',
+    courseCode: 'BCA304',
+    courseName: 'Operating Systems Principles',
+    title: 'Assignment 2: CPU Scheduling Algorithms Simulation (FCFS, SJF, RR)',
+    description: 'Simulate preemptive Priority and Round Robin scheduling in C/Python. Calculate average turnaround and waiting time.',
+    instructions: 'Include Gantt chart generation outputs and compare throughput across varied time quanta.',
+    maxMarks: 20,
+    assignedAt: '2026-08-18T11:00:00Z',
+    dueAt: '2026-09-02T23:59:59Z',
+    allowLateSubmission: true,
+    allowResubmission: true,
+    attachments: ['OS_CPU_Scheduling_Questions.pdf'],
+    createdBy: 'Dr. S. Nair'
+  }
+];
+
+export const INITIAL_SUBMISSIONS = [
+  {
+    id: 'sub-303',
+    assignmentId: 'asg-303',
+    studentId: 'student-s3-001',
+    studentName: 'Rahul Kumar',
+    submissionText: 'Completed Wireshark packet capture analysis on TCP handshake and subnet calculations attached.',
+    submissionLinks: ['https://github.com/rahulkumar-bca/wireshark-tcp-lab'],
+    uploadedFiles: ['Rahul_Kumar_Wireshark_Report.pdf', 'handshake_capture.pcapng'],
+    submittedAt: '2026-08-17T18:40:00Z',
+    status: 'GRADED',
+    marksObtained: 14,
+    feedback: 'Excellent Wireshark protocol dissection and neat CIDR subnetting calculations. Well done!'
+  }
+];
+
+export const INITIAL_COURSE_MATERIALS = [
+  // BCA301 RDBMS
+  {
+    id: 'mat-101',
+    courseId: 'BCA301',
+    courseCode: 'BCA301',
+    courseName: 'Relational Database Management Systems',
+    title: 'Unit 1: ER-Modeling, Relational Schema & Relational Algebra Notes',
+    description: 'Comprehensive notes covering entities, relationships, keys, mapping constraints, and algebraic operators.',
+    materialType: 'PDF',
+    unitNumber: 1,
+    url: '#',
+    fileSize: '3.4 MB',
+    uploadedBy: 'Dr. A. Sharma',
+    publishedAt: '2026-08-01T10:00:00Z',
+    isVisible: true,
+    isBookmarked: true
+  },
+  {
+    id: 'mat-102',
+    courseId: 'BCA301',
+    courseCode: 'BCA301',
+    courseName: 'Relational Database Management Systems',
+    title: 'Unit 2: Normalization (1NF, 2NF, 3NF, BCNF, 4NF) Slides',
+    description: 'Lecture presentation slides on functional dependencies, loss-less decomposition, and dependency preservation.',
+    materialType: 'PPT',
+    unitNumber: 2,
+    url: '#',
+    fileSize: '5.8 MB',
+    uploadedBy: 'Dr. A. Sharma',
+    publishedAt: '2026-08-08T11:30:00Z',
+    isVisible: true,
+    isBookmarked: false
+  },
+  {
+    id: 'mat-103',
+    courseId: 'BCA301',
+    courseCode: 'BCA301',
+    courseName: 'Relational Database Management Systems',
+    title: 'Unit 3: SQL Triggers, Stored Procedures & Transaction ACID Properties',
+    description: 'Code snippets, syntax examples, concurrency anomalies (dirty read, phantom read), and locking protocols.',
+    materialType: 'DOCUMENT',
+    unitNumber: 3,
+    url: '#',
+    fileSize: '1.9 MB',
+    uploadedBy: 'Dr. A. Sharma',
+    publishedAt: '2026-08-16T14:00:00Z',
+    isVisible: true,
+    isBookmarked: true
+  },
+  {
+    id: 'mat-104',
+    courseId: 'BCA301',
+    courseCode: 'BCA301',
+    courseName: 'Relational Database Management Systems',
+    title: 'Database System Concepts (7th Edition) — Silberschatz Reference Book',
+    description: 'Standard textbook reference for relational query optimization and indexing techniques (B+ Trees).',
+    materialType: 'REFERENCE',
+    unitNumber: 4,
+    url: '#',
+    fileSize: '14.2 MB',
+    uploadedBy: 'Dr. A. Sharma',
+    publishedAt: '2026-08-02T09:00:00Z',
+    isVisible: true,
+    isBookmarked: false
+  },
+  
+  // BCA302 Java
+  {
+    id: 'mat-201',
+    courseId: 'BCA302',
+    courseCode: 'BCA302',
+    courseName: 'Java Programming & OOP Concepts',
+    title: 'Unit 1: Core Java OOP, Inheritance & Polymorphism Guide',
+    description: 'In-depth notes on method overloading, overriding, super, final, and abstract classes.',
+    materialType: 'PDF',
+    unitNumber: 1,
+    url: '#',
+    fileSize: '2.8 MB',
+    uploadedBy: 'Prof. K. Rao',
+    publishedAt: '2026-08-03T10:00:00Z',
+    isVisible: true,
+    isBookmarked: true
+  },
+  {
+    id: 'mat-202',
+    courseId: 'BCA302',
+    courseCode: 'BCA302',
+    courseName: 'Java Programming & OOP Concepts',
+    title: 'Unit 2: Multithreading & Exception Handling Video Lecture',
+    description: 'Recorded classroom session on thread lifecycle, synchronization locks, and custom exceptions.',
+    materialType: 'VIDEO',
+    unitNumber: 2,
+    url: 'https://youtube.com/example-java-multithread',
+    fileSize: '45 mins stream',
+    uploadedBy: 'Prof. K. Rao',
+    publishedAt: '2026-08-12T15:30:00Z',
+    isVisible: true,
+    isBookmarked: false
+  },
+  {
+    id: 'mat-203',
+    courseId: 'BCA302',
+    courseCode: 'BCA302',
+    courseName: 'Java Programming & OOP Concepts',
+    title: 'Unit 3: Java Collections Framework & Generics Cheat Sheet',
+    description: 'ArrayList, LinkedList, HashMap, TreeSet complexities and stream API lambda expressions.',
+    materialType: 'LINK',
+    unitNumber: 3,
+    url: 'https://docs.oracle.com/en/java/javase/17/docs/api/',
+    fileSize: 'Web Link',
+    uploadedBy: 'Prof. K. Rao',
+    publishedAt: '2026-08-18T10:00:00Z',
+    isVisible: true,
+    isBookmarked: false
+  },
+
+  // BCA304 OS
+  {
+    id: 'mat-401',
+    courseId: 'BCA304',
+    courseCode: 'BCA304',
+    courseName: 'Operating Systems Principles',
+    title: 'Unit 2: CPU Scheduling & Process Synchronization Algorithms',
+    description: 'Peterson solution, Semaphores, Mutex, Classical IPC problems (Dining Philosophers, Readers-Writers).',
+    materialType: 'PDF',
+    unitNumber: 2,
+    url: '#',
+    fileSize: '4.1 MB',
+    uploadedBy: 'Dr. S. Nair',
+    publishedAt: '2026-08-14T09:15:00Z',
+    isVisible: true,
+    isBookmarked: true
+  }
+];
+
+export const INITIAL_DETAILED_ATTENDANCE = {
+  summary: [
+    {
+      courseId: 'BCA301',
+      courseCode: 'BCA301',
+      courseName: 'Relational Database Management Systems',
+      totalClasses: 28,
+      attendedClasses: 26,
+      absentClasses: 2,
+      odClasses: 2,
+      leaveClasses: 0,
+      attendancePercentage: 93,
+      thresholdPercentage: 75,
+      shortageRisk: false,
+      requiredFutureClasses: 0
+    },
+    {
+      courseId: 'BCA302',
+      courseCode: 'BCA302',
+      courseName: 'Java Programming & OOP Concepts',
+      totalClasses: 28,
+      attendedClasses: 25,
+      absentClasses: 3,
+      odClasses: 1,
+      leaveClasses: 0,
+      attendancePercentage: 89,
+      thresholdPercentage: 75,
+      shortageRisk: false,
+      requiredFutureClasses: 0
+    },
+    {
+      courseId: 'BCA303',
+      courseCode: 'BCA303',
+      courseName: 'Computer Networks & Architecture',
+      totalClasses: 26,
+      attendedClasses: 23,
+      absentClasses: 3,
+      odClasses: 1,
+      leaveClasses: 0,
+      attendancePercentage: 88,
+      thresholdPercentage: 75,
+      shortageRisk: false,
+      requiredFutureClasses: 0
+    },
+    {
+      courseId: 'BCA304',
+      courseCode: 'BCA304',
+      courseName: 'Operating Systems Principles',
+      totalClasses: 25,
+      attendedClasses: 18,
+      absentClasses: 7,
+      odClasses: 0,
+      leaveClasses: 0,
+      attendancePercentage: 72,
+      thresholdPercentage: 75,
+      shortageRisk: true,
+      requiredFutureClasses: 3 // Needs 3 consecutive present classes to reach 75%
+    },
+    {
+      courseId: 'BCA305L',
+      courseCode: 'BCA305L',
+      courseName: 'DBMS & Java Programming Lab',
+      totalClasses: 12,
+      attendedClasses: 12,
+      absentClasses: 0,
+      odClasses: 0,
+      leaveClasses: 0,
+      attendancePercentage: 100,
+      thresholdPercentage: 75,
+      shortageRisk: false,
+      requiredFutureClasses: 0
+    }
+  ],
+  records: [
+    { id: 'att-1', date: '2026-08-22', period: 1, courseCode: 'BCA301', courseName: 'RDBMS', status: 'PRESENT', markedBy: 'Dr. A. Sharma' },
+    { id: 'att-2', date: '2026-08-22', period: 2, courseCode: 'BCA304', courseName: 'Operating Systems', status: 'ABSENT', markedBy: 'Dr. S. Nair', remarks: 'Late entry after 10 mins' },
+    { id: 'att-3', date: '2026-08-21', period: 1, courseCode: 'BCA302', courseName: 'Java Programming', status: 'PRESENT', markedBy: 'Prof. K. Rao' },
+    { id: 'att-4', date: '2026-08-21', period: 3, courseCode: 'BCA303', courseName: 'Computer Networks', status: 'PRESENT', markedBy: 'Prof. M. Varma' },
+    { id: 'att-5', date: '2026-08-20', period: 1, courseCode: 'BCA304', courseName: 'Operating Systems', status: 'ABSENT', markedBy: 'Dr. S. Nair' },
+    { id: 'att-6', date: '2026-08-19', period: 4, courseCode: 'BCA305L', courseName: 'DBMS Lab', status: 'PRESENT', markedBy: 'Prof. K. Rao' },
+    { id: 'att-7', date: '2026-08-18', period: 2, courseCode: 'BCA301', courseName: 'RDBMS', status: 'OD', markedBy: 'Dr. A. Sharma', remarks: 'Approved for SIH Hackathon' },
+    { id: 'att-8', date: '2026-08-18', period: 3, courseCode: 'BCA302', courseName: 'Java Programming', status: 'OD', markedBy: 'Prof. K. Rao', remarks: 'Approved for SIH Hackathon' }
+  ],
+  correctionRequests: [
+    {
+      id: 'cr-101',
+      studentId: 'student-s3-001',
+      courseCode: 'BCA304',
+      date: '2026-08-22',
+      period: 2,
+      reason: 'Biometric fingerprint machine timed out at 09:58 AM; faculty entered absence.',
+      status: 'UNDER_REVIEW',
+      submittedAt: '2026-08-22T14:30:00Z',
+      facultyRemarks: 'Verifying with lab security log'
+    }
+  ]
+};
+
+export const INITIAL_ASSESSMENT_MARKS = [
+  {
+    courseCode: 'BCA301',
+    courseName: 'Relational Database Management Systems',
+    facultyName: 'Dr. A. Sharma',
+    credits: 4,
+    components: [
+      { id: 'm-1', type: 'IA1', title: 'Internal Assessment 1 (Units 1 & 2)', marksObtained: 46, maxMarks: 50, weightage: 20, status: 'PUBLISHED', feedback: 'Very strong relational schema normalization proofs.' },
+      { id: 'm-2', type: 'IA2', title: 'Internal Assessment 2 (Units 3 & 4)', marksObtained: 44, maxMarks: 50, weightage: 20, status: 'PUBLISHED', feedback: 'Good query optimization.' },
+      { id: 'm-3', type: 'ASSIGNMENT', title: 'Continuous Assignments (2 Total)', marksObtained: 19, maxMarks: 20, weightage: 10, status: 'PUBLISHED', feedback: 'Comprehensive SQL documentation.' },
+      { id: 'm-4', type: 'QUIZ', title: 'Online MCQs on SQL & ACID', marksObtained: 18, maxMarks: 20, weightage: 10, status: 'PUBLISHED', feedback: 'High accuracy in transaction locks.' },
+      { id: 'm-5', type: 'EXAM', title: 'Semester End University Examination', marksObtained: null, maxMarks: 100, weightage: 50, status: 'DRAFT', feedback: 'Scheduled for December 2026' }
+    ],
+    internalTotal: 47, // out of 50
+    estimatedGrade: 'O (Outstanding)'
+  },
+  {
+    courseCode: 'BCA302',
+    courseName: 'Java Programming & OOP Concepts',
+    facultyName: 'Prof. K. Rao',
+    credits: 4,
+    components: [
+      { id: 'm-6', type: 'IA1', title: 'Internal Assessment 1 (OOP & Collections)', marksObtained: 45, maxMarks: 50, weightage: 20, status: 'PUBLISHED', feedback: 'Clean class architecture.' },
+      { id: 'm-7', type: 'IA2', title: 'Internal Assessment 2 (Multithreading & Streams)', marksObtained: 43, maxMarks: 50, weightage: 20, status: 'PUBLISHED', feedback: 'Handled race condition scenarios well.' },
+      { id: 'm-8', type: 'ASSIGNMENT', title: 'Mini Project Coding Evaluation', marksObtained: 23, maxMarks: 25, weightage: 15, status: 'PUBLISHED', feedback: 'Working GUI + socket communication.' },
+      { id: 'm-9', type: 'EXAM', title: 'Semester End University Examination', marksObtained: null, maxMarks: 100, weightage: 50, status: 'DRAFT', feedback: 'Scheduled for December 2026' }
+    ],
+    internalTotal: 46,
+    estimatedGrade: 'A+ (Excellent)'
+  },
+  {
+    courseCode: 'BCA303',
+    courseName: 'Computer Networks & Architecture',
+    facultyName: 'Prof. M. Varma',
+    credits: 4,
+    components: [
+      { id: 'm-10', type: 'IA1', title: 'Internal Assessment 1 (OSI / TCP-IP & IP Subnets)', marksObtained: 42, maxMarks: 50, weightage: 20, status: 'PUBLISHED', feedback: 'Solid understanding of routing protocols.' },
+      { id: 'm-11', type: 'IA2', title: 'Internal Assessment 2 (Transport & Security)', marksObtained: 41, maxMarks: 50, weightage: 20, status: 'PUBLISHED', feedback: 'Minor error in TLS handshake diagram.' },
+      { id: 'm-12', type: 'ASSIGNMENT', title: 'Wireshark Packet Analysis', marksObtained: 14, maxMarks: 15, weightage: 10, status: 'PUBLISHED', feedback: 'Excellent packet dissection.' },
+      { id: 'm-13', type: 'EXAM', title: 'Semester End University Examination', marksObtained: null, maxMarks: 100, weightage: 50, status: 'DRAFT', feedback: 'Scheduled for December 2026' }
+    ],
+    internalTotal: 44,
+    estimatedGrade: 'A+ (Excellent)'
+  },
+  {
+    courseCode: 'BCA304',
+    courseName: 'Operating Systems Principles',
+    facultyName: 'Dr. S. Nair',
+    credits: 4,
+    components: [
+      { id: 'm-14', type: 'IA1', title: 'Internal Assessment 1 (Process & Scheduling)', marksObtained: 40, maxMarks: 50, weightage: 20, status: 'PUBLISHED', feedback: 'Good numericals on Round Robin.' },
+      { id: 'm-15', type: 'IA2', title: 'Internal Assessment 2 (Memory & Deadlocks)', marksObtained: 42, maxMarks: 50, weightage: 20, status: 'PUBLISHED', feedback: 'Accurate Bankers algorithm execution.' },
+      { id: 'm-16', type: 'ASSIGNMENT', title: 'Algorithm Simulation Code', marksObtained: 18, maxMarks: 20, weightage: 10, status: 'PUBLISHED', feedback: 'Neat modular structure.' },
+      { id: 'm-17', type: 'EXAM', title: 'Semester End University Examination', marksObtained: null, maxMarks: 100, weightage: 50, status: 'DRAFT', feedback: 'Scheduled for December 2026' }
+    ],
+    internalTotal: 43,
+    estimatedGrade: 'A (Very Good)'
+  },
+  {
+    courseCode: 'BCA305L',
+    courseName: 'DBMS & Java Programming Lab',
+    facultyName: 'Prof. K. Rao & Dr. A. Sharma',
+    credits: 2,
+    components: [
+      { id: 'm-18', type: 'LAB', title: 'Continuous Practical Record & Execution', marksObtained: 28, maxMarks: 30, weightage: 30, status: 'PUBLISHED', feedback: 'All 12 lab exercises verified.' },
+      { id: 'm-19', type: 'LAB', title: 'Model Lab Practical Exam', marksObtained: 19, maxMarks: 20, weightage: 20, status: 'PUBLISHED', feedback: 'Passed all unit test suites.' }
+    ],
+    internalTotal: 47,
+    estimatedGrade: 'O (Outstanding)'
+  }
+];
+
+export const INITIAL_EXAM_RESULTS = {
+  history: [
+    {
+      semester: 1,
+      term: '2024-25 ODD',
+      sgpa: 9.05,
+      totalCredits: 20,
+      creditsEarned: 20,
+      resultStatus: 'PASS',
+      remarks: 'First Class with Distinction',
+      publishedAt: '2025-01-15',
+      subjects: [
+        { code: 'BCA101', name: 'Programming Fundamentals in C', credits: 4, internal: 46, external: 48, total: 94, grade: 'O', gradePoint: 10, result: 'PASS' },
+        { code: 'BCA102', name: 'Discrete Mathematics', credits: 4, internal: 44, external: 45, total: 89, grade: 'A+', gradePoint: 9, result: 'PASS' },
+        { code: 'BCA103', name: 'Digital Logic & Computer Design', credits: 4, internal: 42, external: 43, total: 85, grade: 'A+', gradePoint: 9, result: 'PASS' },
+        { code: 'BCA104', name: 'Professional Communication', credits: 3, internal: 47, external: 46, total: 93, grade: 'O', gradePoint: 10, result: 'PASS' },
+        { code: 'BCA105L', name: 'C Programming Laboratory', credits: 2, internal: 48, external: 49, total: 97, grade: 'O', gradePoint: 10, result: 'PASS' }
+      ]
+    },
+    {
+      semester: 2,
+      term: '2024-25 EVEN',
+      sgpa: 8.80,
+      totalCredits: 20,
+      creditsEarned: 20,
+      resultStatus: 'PASS',
+      remarks: 'First Class with Distinction',
+      publishedAt: '2025-06-20',
+      subjects: [
+        { code: 'BCA201', name: 'Data Structures with C++', credits: 4, internal: 43, external: 45, total: 88, grade: 'A+', gradePoint: 9, result: 'PASS' },
+        { code: 'BCA202', name: 'Object Oriented Programming', credits: 4, internal: 45, external: 46, total: 91, grade: 'O', gradePoint: 10, result: 'PASS' },
+        { code: 'BCA203', name: 'Financial Accounting & Management', credits: 3, internal: 41, external: 42, total: 83, grade: 'A', gradePoint: 8, result: 'PASS' },
+        { code: 'BCA204', name: 'Environmental Science', credits: 3, internal: 44, external: 44, total: 88, grade: 'A+', gradePoint: 9, result: 'PASS' },
+        { code: 'BCA205L', name: 'Data Structures Lab', credits: 2, internal: 47, external: 48, total: 95, grade: 'O', gradePoint: 10, result: 'PASS' }
+      ]
+    },
+    {
+      semester: 3,
+      term: '2025-26 ODD (Interim Provisional)',
+      sgpa: 8.85,
+      totalCredits: 22,
+      creditsEarned: 22,
+      resultStatus: 'PASS',
+      remarks: 'Provisional CIA Aggregate',
+      publishedAt: '2026-08-20',
+      subjects: [
+        { code: 'BCA301', name: 'Relational Database Management Systems', credits: 4, internal: 47, external: 46, total: 93, grade: 'O', gradePoint: 10, result: 'PASS' },
+        { code: 'BCA302', name: 'Java Programming & OOP Concepts', credits: 4, internal: 46, external: 44, total: 90, grade: 'O', gradePoint: 10, result: 'PASS' },
+        { code: 'BCA303', name: 'Computer Networks & Architecture', credits: 4, internal: 44, external: 43, total: 87, grade: 'A+', gradePoint: 9, result: 'PASS' },
+        { code: 'BCA304', name: 'Operating Systems Principles', credits: 4, internal: 43, external: 41, total: 84, grade: 'A', gradePoint: 8, result: 'PASS' },
+        { code: 'BCA305L', name: 'DBMS & Java Programming Lab', credits: 2, internal: 47, external: 48, total: 95, grade: 'O', gradePoint: 10, result: 'PASS' }
+      ]
+    }
+  ],
+  cgpa: 8.92,
+  totalCreditsEarned: 62,
+  arrearCount: 0
+};
+
+export const INITIAL_HELPDESK_TICKETS = [
+  {
+    id: 'TICK-4091',
+    studentId: 'student-s3-001',
+    studentName: 'Rahul Kumar',
+    reg: 'BCS23CA001',
+    category: 'Attendance correction',
+    subject: 'Biometric missed check-in on 22 Aug (OS Class)',
+    description: 'My biometric scan failed due to scanner glitch on 22nd Aug period 2. Kindly verify with the professor and update the attendance ledger.',
+    priority: 'HIGH',
+    status: 'IN_PROGRESS',
+    createdAt: '2026-08-22T14:35:00Z',
+    resolutionDeadline: '2026-08-25T17:00:00Z',
+    attachments: ['scanner_error_screen.jpg'],
+    replies: [
+      {
+        id: 'rep-1',
+        author: 'Rahul Kumar',
+        role: 'STUDENT',
+        message: 'I have also informed Dr. S. Nair during the afternoon practical slot.',
+        timestamp: '2026-08-22T14:36:00Z'
+      },
+      {
+        id: 'rep-2',
+        author: 'Dr. A. Sharma',
+        role: 'HOD',
+        message: 'Noted. The department coordinator is reconciling server attendance logs with CCTV entry. Expect resolution by Monday morning.',
+        timestamp: '2026-08-22T16:10:00Z'
+      }
+    ]
+  },
+  {
+    id: 'TICK-3882',
+    studentId: 'student-s3-001',
+    studentName: 'Rahul Kumar',
+    reg: 'BCS23CA001',
+    category: 'Certificate/document request',
+    subject: 'Request for Bonafide Certificate for National Scholarship',
+    description: 'Need an official signed Bonafide Certificate mentioning BCA Semester 3 enrolment for NSP scholarship renewal.',
+    priority: 'MEDIUM',
+    status: 'RESOLVED',
+    createdAt: '2026-08-10T11:00:00Z',
+    resolutionDeadline: '2026-08-14T17:00:00Z',
+    attachments: ['scholarship_form.pdf'],
+    replies: [
+      {
+        id: 'rep-3',
+        author: 'Admin Office',
+        role: 'ADMIN',
+        message: 'Your bonafide certificate has been verified and digitally stamped. You can download the PDF from your Profile & Documents tab.',
+        timestamp: '2026-08-12T10:30:00Z'
+      }
+    ]
+  }
+];
+
+export const INITIAL_NOTIFICATIONS = [
+  {
+    id: 'notif-1',
+    title: 'New Announcement',
+    message: 'CIA-2 Examination Schedule & Portions Published for Semester 3.',
+    type: 'ANNOUNCEMENT',
+    timestamp: '2026-08-22T09:30:00Z',
+    isRead: false,
+    link: '/student/announcements'
+  },
+  {
+    id: 'notif-2',
+    title: 'Attendance Shortage Risk Alert',
+    message: 'Your attendance in BCA304 (Operating Systems) is 72% (< 75%). Attend next 3 classes to recover eligibility.',
+    type: 'ATTENDANCE',
+    timestamp: '2026-08-22T10:15:00Z',
+    isRead: false,
+    link: '/student/attendance'
+  },
+  {
+    id: 'notif-3',
+    title: 'Assignment Graded',
+    message: 'Your submission for Wireshark Packet Sniffing (BCA303) was graded 14/15.',
+    type: 'ASSIGNMENT',
+    timestamp: '2026-08-18T11:00:00Z',
+    isRead: true,
+    link: '/student/assignments'
+  },
+  {
+    id: 'notif-4',
+    title: 'Helpdesk Response',
+    message: 'Dr. A. Sharma replied to ticket TICK-4091 regarding attendance reconciliation.',
+    type: 'HELPDESK',
+    timestamp: '2026-08-22T16:10:00Z',
+    isRead: false,
+    link: '/student/helpdesk'
+  }
+];
+
+export const INITIAL_DOCUMENT_REQUESTS = [
+  {
+    id: 'DOC-901',
+    studentId: 'student-s3-001',
+    studentName: 'Rahul Kumar',
+    type: 'Bonafide Certificate',
+    purpose: 'National Scholarship Portal Renewal',
+    status: 'ISSUED',
+    requestedAt: '2026-08-10',
+    issuedAt: '2026-08-12',
+    downloadUrl: '#'
+  },
+  {
+    id: 'DOC-902',
+    studentId: 'student-s3-001',
+    studentName: 'Rahul Kumar',
+    type: 'Official Transcript (Sem 1 & 2)',
+    purpose: 'Off-Campus Internship Application',
+    status: 'IN_PROCESS',
+    requestedAt: '2026-08-21',
+    issuedAt: null,
+    downloadUrl: null
+  }
+];
+
 export const INITIAL_ACTIVITIES = [
-  { id: 'ACT-101', sem: 3, studentId: 'student-s3-001', studentName: 'Rahul Kumar', reg: 'BCS23CA001', title: 'National Level Hackathon 2025', org: 'IIT Madras', date: '2025-08-12', category: 'Hackathon', od: true, status: 'VERIFIED', skills: 'React, PostgreSQL, REST' },
-  { id: 'ACT-102', sem: 3, studentId: '301', studentName: 'Aarav Nair', reg: '1BC24001', title: 'National Level Hackathon 2025', org: 'IIT Madras', date: '2025-08-12', category: 'Hackathon', od: true, status: 'VERIFIED', skills: 'React, PostgreSQL, REST' },
-  { id: 'ACT-103', sem: 3, studentId: '302', studentName: 'Diya Menon', reg: '1BC24002', title: 'AWS Cloud Practitioner Certification', org: 'Amazon Web Services', date: '2025-07-20', category: 'Certification', od: false, status: 'VERIFIED', skills: 'Cloud Architecture, AWS' },
-  { id: 'ACT-104', sem: 3, studentId: 'student-s3-001', studentName: 'Rahul Kumar', reg: 'BCS23CA001', title: 'State Level Web Dev Symposium', org: 'Anna University', date: '2025-09-05', category: 'Symposium', od: true, status: 'PENDING', skills: 'Tailwind CSS, Node.js' }
+  { id: 'ACT-101', sem: 3, studentId: 'student-s3-001', studentName: 'Rahul Kumar', reg: 'BCS23CA001', title: 'National Level Hackathon 2025', org: 'IIT Madras', location: 'Chennai', date: '2025-08-12', endDate: '2025-08-14', category: 'Hackathon', od: true, status: 'HOD_APPROVED', facultyRemarks: 'Verified participation certificate & project demo', hodRemarks: 'Approved 2 days attendance credit', attendanceCreditDays: 2, skills: 'React, PostgreSQL, REST' },
+  { id: 'ACT-102', sem: 3, studentId: '301', studentName: 'Aarav Nair', reg: '1BC24001', title: 'National Level Hackathon 2025', org: 'IIT Madras', location: 'Chennai', date: '2025-08-12', endDate: '2025-08-14', category: 'Hackathon', od: true, status: 'HOD_APPROVED', facultyRemarks: 'Verified participation', hodRemarks: 'Approved', attendanceCreditDays: 2, skills: 'React, PostgreSQL, REST' },
+  { id: 'ACT-103', sem: 3, studentId: '302', studentName: 'Diya Menon', reg: '1BC24002', title: 'AWS Cloud Practitioner Certification', org: 'Amazon Web Services', location: 'Online', date: '2025-07-20', endDate: '2025-07-20', category: 'Certification', od: false, status: 'HOD_APPROVED', facultyRemarks: 'Credential ID verified on AWS registry', hodRemarks: 'Acknowledged', attendanceCreditDays: 0, skills: 'Cloud Architecture, AWS' },
+  { id: 'ACT-104', sem: 3, studentId: 'student-s3-001', studentName: 'Rahul Kumar', reg: 'BCS23CA001', title: 'State Level Web Dev Symposium', org: 'Anna University', location: 'Guindy, Chennai', date: '2026-09-05', endDate: '2026-09-06', category: 'Symposium', od: true, status: 'FACULTY_APPROVED', facultyRemarks: 'Paper presentation abstract approved', hodRemarks: 'Pending final OD order', attendanceCreditDays: 2, skills: 'Tailwind CSS, Node.js' }
 ];
 
 export const INITIAL_ACADEMIC_FILES = [
@@ -230,15 +909,7 @@ export const INITIAL_AUDIT_LOGS = [
   { id: 'AUD-102', time: '10:15 AM', actor: 'Prof. K. Rao', role: 'FACULTY', action: 'Attendance Recorded', details: 'Attendance marked for BCA302 (Java OOP) — 9 Present, 0 Absent.' }
 ];
 
-export const INITIAL_TIMETABLE = {
-  3: [
-    { day: 'Monday', slot1: 'BCA301 (Room 301)', slot2: 'BCA302 (Room 302)', slot3: 'BCA303 (Room 303)', slot4: 'BCA305L (DB Lab)', slot5: 'BCA305L (DB Lab)' },
-    { day: 'Tuesday', slot1: 'BCA302 (Room 302)', slot2: 'BCA304 (Room 304)', slot3: 'BCA301 (Room 301)', slot4: 'Library / Seminar', slot5: 'Mentoring' },
-    { day: 'Wednesday', slot1: 'BCA303 (Room 303)', slot2: 'BCA301 (Room 301)', slot3: 'BCA304 (Room 304)', slot4: 'BCA302 (Room 302)', slot5: 'Sports' },
-    { day: 'Thursday', slot1: 'BCA304 (Room 304)', slot2: 'BCA303 (Room 303)', slot3: 'BCA302 (Room 302)', slot4: 'BCA305L (Java Lab)', slot5: 'BCA305L (Java Lab)' },
-    { day: 'Friday', slot1: 'BCA301 (Room 301)', slot2: 'BCA304 (Room 304)', slot3: 'BCA303 (Room 303)', slot4: 'Club Activity', slot5: 'Placement Training' }
-  ]
-};
+// LocalStorage loaders and savers
 
 export function loadWorkspaceData() {
   if (typeof window === 'undefined') return INITIAL_SEMESTERS;
@@ -315,3 +986,489 @@ export function saveAcademicFiles(files) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(FILES_KEY, JSON.stringify(files));
 }
+
+export function loadTimetableEntries() {
+  if (typeof window === 'undefined') return INITIAL_TIMETABLE_ENTRIES;
+  try {
+    const raw = localStorage.getItem(TIMETABLE_KEY);
+    if (!raw) {
+      localStorage.setItem(TIMETABLE_KEY, JSON.stringify(INITIAL_TIMETABLE_ENTRIES));
+      return INITIAL_TIMETABLE_ENTRIES;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_TIMETABLE_ENTRIES;
+  }
+}
+
+export function saveTimetableEntries(entries) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(TIMETABLE_KEY, JSON.stringify(entries));
+}
+
+export function loadAnnouncements() {
+  if (typeof window === 'undefined') return INITIAL_ANNOUNCEMENTS;
+  try {
+    const raw = localStorage.getItem(ANNOUNCEMENTS_KEY);
+    if (!raw) {
+      localStorage.setItem(ANNOUNCEMENTS_KEY, JSON.stringify(INITIAL_ANNOUNCEMENTS));
+      return INITIAL_ANNOUNCEMENTS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_ANNOUNCEMENTS;
+  }
+}
+
+export function saveAnnouncements(announcements) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ANNOUNCEMENTS_KEY, JSON.stringify(announcements));
+}
+
+export function loadAssignments() {
+  if (typeof window === 'undefined') return INITIAL_ASSIGNMENTS;
+  try {
+    const raw = localStorage.getItem(ASSIGNMENTS_KEY);
+    if (!raw) {
+      localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify(INITIAL_ASSIGNMENTS));
+      return INITIAL_ASSIGNMENTS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_ASSIGNMENTS;
+  }
+}
+
+export function saveAssignments(assignments) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify(assignments));
+}
+
+export function loadSubmissions() {
+  if (typeof window === 'undefined') return INITIAL_SUBMISSIONS;
+  try {
+    const raw = localStorage.getItem(SUBMISSIONS_KEY);
+    if (!raw) {
+      localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(INITIAL_SUBMISSIONS));
+      return INITIAL_SUBMISSIONS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_SUBMISSIONS;
+  }
+}
+
+export function saveSubmissions(subs) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(subs));
+}
+
+export function loadCourseMaterials() {
+  if (typeof window === 'undefined') return INITIAL_COURSE_MATERIALS;
+  try {
+    const raw = localStorage.getItem(MATERIALS_KEY);
+    if (!raw) {
+      localStorage.setItem(MATERIALS_KEY, JSON.stringify(INITIAL_COURSE_MATERIALS));
+      return INITIAL_COURSE_MATERIALS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_COURSE_MATERIALS;
+  }
+}
+
+export function saveCourseMaterials(mats) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(MATERIALS_KEY, JSON.stringify(mats));
+}
+
+export function loadDetailedAttendance() {
+  if (typeof window === 'undefined') return INITIAL_DETAILED_ATTENDANCE;
+  try {
+    const raw = localStorage.getItem(ATTENDANCE_KEY);
+    if (!raw) {
+      localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(INITIAL_DETAILED_ATTENDANCE));
+      return INITIAL_DETAILED_ATTENDANCE;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_DETAILED_ATTENDANCE;
+  }
+}
+
+export function saveDetailedAttendance(att) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(att));
+}
+
+export function loadAssessmentMarks() {
+  if (typeof window === 'undefined') return INITIAL_ASSESSMENT_MARKS;
+  try {
+    const raw = localStorage.getItem(MARKS_KEY);
+    if (!raw) {
+      localStorage.setItem(MARKS_KEY, JSON.stringify(INITIAL_ASSESSMENT_MARKS));
+      return INITIAL_ASSESSMENT_MARKS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_ASSESSMENT_MARKS;
+  }
+}
+
+export function saveAssessmentMarks(marks) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(MARKS_KEY, JSON.stringify(marks));
+}
+
+export function loadExamResults() {
+  if (typeof window === 'undefined') return INITIAL_EXAM_RESULTS;
+  try {
+    const raw = localStorage.getItem(RESULTS_KEY);
+    if (!raw) {
+      localStorage.setItem(RESULTS_KEY, JSON.stringify(INITIAL_EXAM_RESULTS));
+      return INITIAL_EXAM_RESULTS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_EXAM_RESULTS;
+  }
+}
+
+export function saveExamResults(results) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(RESULTS_KEY, JSON.stringify(results));
+}
+
+export function loadHelpdeskTickets() {
+  if (typeof window === 'undefined') return INITIAL_HELPDESK_TICKETS;
+  try {
+    const raw = localStorage.getItem(HELPDESK_KEY);
+    if (!raw) {
+      localStorage.setItem(HELPDESK_KEY, JSON.stringify(INITIAL_HELPDESK_TICKETS));
+      return INITIAL_HELPDESK_TICKETS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_HELPDESK_TICKETS;
+  }
+}
+
+export function saveHelpdeskTickets(tickets) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(HELPDESK_KEY, JSON.stringify(tickets));
+}
+
+export function loadNotifications() {
+  if (typeof window === 'undefined') return INITIAL_NOTIFICATIONS;
+  try {
+    const raw = localStorage.getItem(NOTIFICATIONS_KEY);
+    if (!raw) {
+      localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(INITIAL_NOTIFICATIONS));
+      return INITIAL_NOTIFICATIONS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_NOTIFICATIONS;
+  }
+}
+
+export function saveNotifications(notifs) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifs));
+}
+
+const LAB_KEY = 'bcafly_lab_experiments_v3';
+const SESSIONS_KEY = 'bcafly_attendance_sessions_v3';
+
+export const INITIAL_LAB_EXPERIMENTS = [
+  {
+    id: 'exp-1',
+    courseId: 'BCA305L',
+    courseCode: 'BCA305L',
+    experimentNumber: 1,
+    title: 'SQL DDL and DML Table Creation & Constraint Specification',
+    description: 'Implement primary key, foreign key, check, unique, and not null constraints with sample data population.',
+    maxMarks: 20,
+    dueDate: '2026-08-10',
+    isPublished: true,
+    submissions: [
+      { studentId: 'student-s3-001', studentName: 'Rahul Kumar', reg: 'BCS23CA001', githubUrl: 'https://github.com/rahulkumar/bca305l-lab1', status: 'VERIFIED', observationMarks: 9, vivaMarks: 5, practicalMarks: 5, totalMarks: 19, feedback: 'Well structured SQL queries and correct schema relations.' },
+      { studentId: '301', studentName: 'Aarav Nair', reg: '1BC24001', githubUrl: 'https://github.com/aaravnair/dbms-lab1', status: 'VERIFIED', observationMarks: 8, vivaMarks: 5, practicalMarks: 5, totalMarks: 18, feedback: 'Good constraints implementation.' },
+      { studentId: '302', studentName: 'Diya Menon', reg: '1BC24002', githubUrl: 'https://github.com/dmenon/lab-ex1', status: 'VERIFIED', observationMarks: 10, vivaMarks: 5, practicalMarks: 5, totalMarks: 20, feedback: 'Exceptional test execution.' },
+      { studentId: '303', studentName: 'Rohan Gupta', reg: '1BC24003', githubUrl: '', status: 'SUBMITTED', observationMarks: 7, vivaMarks: 3, practicalMarks: 4, totalMarks: 14, feedback: 'Pending viva re-evaluation.' }
+    ]
+  },
+  {
+    id: 'exp-2',
+    courseId: 'BCA305L',
+    courseCode: 'BCA305L',
+    experimentNumber: 2,
+    title: 'Complex Nested Subqueries, Set Operations & Views in PostgreSQL/Oracle',
+    description: 'Execute multi-level correlated subqueries, union/intersect/minus, and create security views.',
+    maxMarks: 20,
+    dueDate: '2026-08-18',
+    isPublished: true,
+    submissions: [
+      { studentId: 'student-s3-001', studentName: 'Rahul Kumar', reg: 'BCS23CA001', githubUrl: 'https://github.com/rahulkumar/bca305l-lab2', status: 'VERIFIED', observationMarks: 9, vivaMarks: 5, practicalMarks: 5, totalMarks: 19, feedback: 'Complex views tested with execution plan.' },
+      { studentId: '301', studentName: 'Aarav Nair', reg: '1BC24001', githubUrl: 'https://github.com/aaravnair/dbms-lab2', status: 'VERIFIED', observationMarks: 8, vivaMarks: 4, practicalMarks: 5, totalMarks: 17, feedback: 'Correlated subqueries working correctly.' }
+    ]
+  },
+  {
+    id: 'exp-3',
+    courseId: 'BCA305L',
+    courseCode: 'BCA305L',
+    experimentNumber: 3,
+    title: 'Java Object-Oriented Principles: Inheritance, Abstract Classes & Interfaces',
+    description: 'Construct banking account hierarchy with abstract transaction methods and interest calculators.',
+    maxMarks: 20,
+    dueDate: '2026-08-25',
+    isPublished: true,
+    submissions: [
+      { studentId: 'student-s3-001', studentName: 'Rahul Kumar', reg: 'BCS23CA001', githubUrl: 'https://github.com/rahulkumar/java-oop-hierarchy', status: 'SUBMITTED', observationMarks: null, vivaMarks: null, practicalMarks: null, totalMarks: null, feedback: '' }
+    ]
+  },
+  {
+    id: 'exp-4',
+    courseId: 'BCA305L',
+    courseCode: 'BCA305L',
+    experimentNumber: 4,
+    title: 'Java Exception Handling & User-Defined Custom Business Exceptions',
+    description: 'Implement multi-catch blocks, finally resource management, and InsufficientFundsException.',
+    maxMarks: 20,
+    dueDate: '2026-09-02',
+    isPublished: true,
+    submissions: []
+  },
+  {
+    id: 'exp-5',
+    courseId: 'BCA305L',
+    courseCode: 'BCA305L',
+    experimentNumber: 5,
+    title: 'JDBC Connection & CRUD Transaction Processing with PreparedStatement',
+    description: 'Connect Java front-end application with PostgreSQL database for real-time customer record updates.',
+    maxMarks: 20,
+    dueDate: '2026-09-12',
+    isPublished: false,
+    submissions: []
+  }
+];
+
+export const INITIAL_ATTENDANCE_SESSIONS = [
+  { id: 'sess-1', courseCode: 'BCA302', courseName: 'Java Programming & OOP Concepts', semesterId: 3, section: 'A', date: '2026-08-22', period: 1, startTime: '09:00', endTime: '10:00', status: 'LOCKED', presentCount: 8, absentCount: 1, submittedAt: '2026-08-22T10:05:00Z' },
+  { id: 'sess-2', courseCode: 'BCA305L', courseName: 'DBMS & Java Programming Lab', semesterId: 3, section: 'A', date: '2026-08-21', period: 4, startTime: '01:15', endTime: '03:15', status: 'LOCKED', presentCount: 9, absentCount: 0, submittedAt: '2026-08-21T15:20:00Z' },
+  { id: 'sess-3', courseCode: 'BCA302', courseName: 'Java Programming & OOP Concepts', semesterId: 3, section: 'A', date: '2026-08-20', period: 2, startTime: '10:00', endTime: '11:00', status: 'LOCKED', presentCount: 8, absentCount: 1, submittedAt: '2026-08-20T11:05:00Z' }
+];
+
+export function loadDocumentRequests() {
+  if (typeof window === 'undefined') return INITIAL_DOCUMENT_REQUESTS;
+  try {
+    const raw = localStorage.getItem(DOC_REQUESTS_KEY);
+    if (!raw) {
+      localStorage.setItem(DOC_REQUESTS_KEY, JSON.stringify(INITIAL_DOCUMENT_REQUESTS));
+      return INITIAL_DOCUMENT_REQUESTS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_DOCUMENT_REQUESTS;
+  }
+}
+
+export function saveDocumentRequests(reqs) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(DOC_REQUESTS_KEY, JSON.stringify(reqs));
+}
+
+export function loadLabExperiments() {
+  if (typeof window === 'undefined') return INITIAL_LAB_EXPERIMENTS;
+  try {
+    const raw = localStorage.getItem(LAB_KEY);
+    if (!raw) {
+      localStorage.setItem(LAB_KEY, JSON.stringify(INITIAL_LAB_EXPERIMENTS));
+      return INITIAL_LAB_EXPERIMENTS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_LAB_EXPERIMENTS;
+  }
+}
+
+export function saveLabExperiments(exps) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LAB_KEY, JSON.stringify(exps));
+}
+
+export function loadAttendanceSessions() {
+  if (typeof window === 'undefined') return INITIAL_ATTENDANCE_SESSIONS;
+  try {
+    const raw = localStorage.getItem(SESSIONS_KEY);
+    if (!raw) {
+      localStorage.setItem(SESSIONS_KEY, JSON.stringify(INITIAL_ATTENDANCE_SESSIONS));
+      return INITIAL_ATTENDANCE_SESSIONS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_ATTENDANCE_SESSIONS;
+  }
+}
+
+export function saveAttendanceSessions(sessions) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+}
+
+const RISK_CASES_KEY = 'bcafly_risk_cases_v3';
+const ALLOCATIONS_KEY = 'bcafly_allocations_v3';
+const BACKLOGS_KEY = 'bcafly_backlogs_v3';
+
+export const INITIAL_STUDENT_RISK_CASES = [
+  {
+    id: 'risk-001',
+    studentId: '103',
+    reg: '1BC25003',
+    studentName: 'Arjun Das',
+    semesterId: 3,
+    section: 'A',
+    riskLevel: 'HIGH',
+    attendance: 72,
+    sgpa: 6.90,
+    backlogCount: 1,
+    riskReasons: ['Attendance below 75% threshold (72%)', '1 Standing Arrear in Discrete Mathematics', 'Low score in CIA 1 Theory'],
+    assignedMentorId: 'FAC02',
+    mentorName: 'Prof. K. Rao',
+    interventionPlan: 'Mandatory remedial tutorial on Tuesdays & bi-weekly parent attendance review.',
+    status: 'INTERVENTION_ACTIVE',
+    nextReviewDate: '2026-09-05',
+    createdAt: '2026-08-15'
+  },
+  {
+    id: 'risk-002',
+    studentId: '304',
+    reg: '1BC24004',
+    studentName: 'Ananya Roy',
+    semesterId: 3,
+    section: 'B',
+    riskLevel: 'MEDIUM',
+    attendance: 74,
+    sgpa: 7.20,
+    backlogCount: 0,
+    riskReasons: ['Borderline Attendance Shortage in Operating Systems (74%)'],
+    assignedMentorId: 'FAC04',
+    mentorName: 'Dr. S. Nair',
+    interventionPlan: 'Counseling scheduled; attendance recovery roadmap drafted.',
+    status: 'COUNSELING_SCHEDULED',
+    nextReviewDate: '2026-09-02',
+    createdAt: '2026-08-20'
+  }
+];
+
+export const INITIAL_FACULTY_ALLOCATIONS = [
+  { id: 'alloc-1', facultyId: 'FAC01', facultyName: 'Dr. A. Sharma', role: 'Professor & HOD', courseCode: 'BCA301', courseName: 'Relational Database Management Systems', allocationType: 'THEORY', weeklyHours: 4, status: 'ACTIVE' },
+  { id: 'alloc-2', facultyId: 'FAC02', facultyName: 'Prof. K. Rao', role: 'Associate Professor', courseCode: 'BCA302', courseName: 'Java Programming & OOP Concepts', allocationType: 'THEORY', weeklyHours: 4, status: 'ACTIVE' },
+  { id: 'alloc-3', facultyId: 'FAC02', facultyName: 'Prof. K. Rao', role: 'Associate Professor', courseCode: 'BCA305L', courseName: 'DBMS & Java Programming Lab', allocationType: 'LAB', weeklyHours: 3, status: 'ACTIVE' },
+  { id: 'alloc-4', facultyId: 'FAC03', facultyName: 'Prof. M. Varma', role: 'Assistant Professor', courseCode: 'BCA303', courseName: 'Computer Networks & Architecture', allocationType: 'THEORY', weeklyHours: 4, status: 'ACTIVE' },
+  { id: 'alloc-5', facultyId: 'FAC04', facultyName: 'Dr. S. Nair', role: 'Associate Professor', courseCode: 'BCA304', courseName: 'Operating Systems Principles', allocationType: 'THEORY', weeklyHours: 4, status: 'ACTIVE' },
+  { id: 'alloc-6', facultyId: 'FAC05', facultyName: 'Prof. R. Deshmukh', role: 'Assistant Professor', courseCode: null, courseName: 'Unassigned / Available for Elective', allocationType: 'UNASSIGNED', weeklyHours: 0, status: 'UNASSIGNED' }
+];
+
+export const INITIAL_BACKLOG_RECORDS = [
+  {
+    id: 'bl-101',
+    studentId: '103',
+    reg: '1BC25003',
+    studentName: 'Arjun Das',
+    semesterId: 1,
+    failedCourseCode: 'BCA102',
+    failedCourseName: 'Discrete Mathematics',
+    examSession: '2025-26 ODD Supplementary',
+    attemptCount: 2,
+    marksObtained: 28,
+    maxMarks: 100,
+    grade: 'F (Arrear)',
+    mentorFacultyId: 'FAC03',
+    mentorName: 'Prof. M. Varma',
+    remedialPlan: '15-hour specialized problem solving sessions in Boolean algebra & Graph Theory.',
+    remedialAttendancePercentage: 80,
+    reExamEligibility: 'ELIGIBLE',
+    status: 'IN_PROGRESS',
+    nextReviewDate: '2026-09-10'
+  },
+  {
+    id: 'bl-102',
+    studentId: '203',
+    reg: '1BC24003',
+    studentName: 'Rohan Gupta',
+    semesterId: 2,
+    failedCourseCode: 'BCA202',
+    failedCourseName: 'Database Management Systems Concepts',
+    examSession: '2024-25 EVEN Regular',
+    attemptCount: 1,
+    marksObtained: 32,
+    maxMarks: 100,
+    grade: 'F (Arrear)',
+    mentorFacultyId: 'FAC01',
+    mentorName: 'Dr. A. Sharma',
+    remedialPlan: 'SQL normalization clinic & relational algebra tutorials.',
+    remedialAttendancePercentage: 92,
+    reExamEligibility: 'ELIGIBLE',
+    status: 'REMEDIATION_PLANNED',
+    nextReviewDate: '2026-09-15'
+  }
+];
+
+export function loadStudentRiskCases() {
+  if (typeof window === 'undefined') return INITIAL_STUDENT_RISK_CASES;
+  try {
+    const raw = localStorage.getItem(RISK_CASES_KEY);
+    if (!raw) {
+      localStorage.setItem(RISK_CASES_KEY, JSON.stringify(INITIAL_STUDENT_RISK_CASES));
+      return INITIAL_STUDENT_RISK_CASES;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_STUDENT_RISK_CASES;
+  }
+}
+
+export function saveStudentRiskCases(cases) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(RISK_CASES_KEY, JSON.stringify(cases));
+}
+
+export function loadFacultyAllocations() {
+  if (typeof window === 'undefined') return INITIAL_FACULTY_ALLOCATIONS;
+  try {
+    const raw = localStorage.getItem(ALLOCATIONS_KEY);
+    if (!raw) {
+      localStorage.setItem(ALLOCATIONS_KEY, JSON.stringify(INITIAL_FACULTY_ALLOCATIONS));
+      return INITIAL_FACULTY_ALLOCATIONS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_FACULTY_ALLOCATIONS;
+  }
+}
+
+export function saveFacultyAllocations(allocs) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ALLOCATIONS_KEY, JSON.stringify(allocs));
+}
+
+export function loadBacklogRecords() {
+  if (typeof window === 'undefined') return INITIAL_BACKLOG_RECORDS;
+  try {
+    const raw = localStorage.getItem(BACKLOGS_KEY);
+    if (!raw) {
+      localStorage.setItem(BACKLOGS_KEY, JSON.stringify(INITIAL_BACKLOG_RECORDS));
+      return INITIAL_BACKLOG_RECORDS;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_BACKLOG_RECORDS;
+  }
+}
+
+export function saveBacklogRecords(bls) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(BACKLOGS_KEY, JSON.stringify(bls));
+}
+

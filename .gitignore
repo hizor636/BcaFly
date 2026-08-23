@@ -1,20 +1,23 @@
+# Environment variables
+.env
+.env.*
+.env.local
+.env.*.local
+!.env.example
+
 # Dependencies
 node_modules/
 package-lock.json
 .pnpm-store/
 
 # Build outputs
+.next/
 dist/
 build/
 target/
 *.class
 *.jar
 *.war
-
-# Environment variables
-.env
-.env.local
-.env.*.local
 
 # Python
 __pycache__/
@@ -24,12 +27,26 @@ venv/
 .venv/
 env/
 
-# IDE and OS files
+# Secure Storage, Uploads, Backups, and Logs
+uploads/
+storage/
+backups/
+logs/
+*.log
+*.sql
+*.db
+*.sqlite
+
+# Secrets, Keys, and Credentials
+*.pem
+*.key
+credentials.json
+*.pfx
+*.p12
+
+# IDE & OS files
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
-*.log
-
-# Docker data / logs
 *.zip

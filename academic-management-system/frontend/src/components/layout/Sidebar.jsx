@@ -16,29 +16,63 @@ export const PLATFORM_NAV = {
     { path: '/admin/audit', label: 'Immutable Audit Log', icon: '🔒' }
   ],
   HOD: [
-    { title: 'DEPARTMENT OVERSIGHT', isHeader: true },
-    { path: '/hod/overview', label: 'HOD Overview', icon: '🏛️' },
+    { title: 'GOVERNANCE & APPROVALS', isHeader: true },
+    { path: '/hod/overview', label: 'Department Dashboard', icon: '🏛️' },
     { path: '/hod/approvals', label: 'Approvals Centre', icon: '⚡' },
-    { path: '/admin/academic-records', label: 'Semester Academic Records', icon: '🗂️' },
-    { path: '/hod/backlogs', label: 'Backlog Register', icon: '⚠️' },
-    { path: '/admin/timetable', label: 'Semester Timetable', icon: '🗓️' },
-    { path: '/admin/reports', label: 'Department Reports', icon: '📊' },
-    { path: '/admin/audit', label: 'Audit Trail', icon: '🔒' }
+    { path: '/hod/academic-monitoring', label: 'Academic Health Monitor', icon: '📊' },
+    { path: '/hod/students-at-risk', label: 'Students at Risk (Intervention)', icon: '🚨' },
+
+    { title: 'ACADEMIC OPERATIONS', isHeader: true },
+    { path: '/hod/backlogs', label: 'Backlogs & Remedial Plans', icon: '⚠️' },
+    { path: '/hod/faculty-allocations', label: 'Faculty Course Allocations', icon: '👨‍🏫' },
+    { path: '/hod/timetable', label: 'Timetable Governance', icon: '🗓️' },
+    { path: '/hod/academic-records', label: 'Semester Academic Records', icon: '🗂️' },
+
+    { title: 'REPORTS & AUDIT', isHeader: true },
+    { path: '/hod/reports', label: 'Department Analytics Reports', icon: '📈' },
+    { path: '/hod/audit', label: 'Department Audit Trail', icon: '🔒' },
+    { path: '/hod/profile', label: 'HOD Leadership Profile', icon: '👤' }
   ],
   FACULTY: [
-    { title: 'ASSIGNED SEMESTER COURSES', isHeader: true },
-    { path: '/faculty/overview', label: 'Assigned Courses', icon: '📚' },
-    { path: '/faculty/attendance', label: 'Attendance Entry', icon: '⏱️' },
-    { path: '/faculty/marks', label: 'Assessment Entry', icon: '📝' },
-    { path: '/faculty/reports', label: 'Course Reports', icon: '📊' }
+    { title: 'TEACHING & CLASSROOM', isHeader: true },
+    { path: '/faculty/overview', label: 'Faculty Dashboard', icon: '📊' },
+    { path: '/faculty/timetable', label: 'Teaching Schedule', icon: '🗓️' },
+    { path: '/faculty/courses', label: 'Assigned Courses & Labs', icon: '📚' },
+    { path: '/faculty/attendance', label: 'Session Attendance', icon: '⏱️' },
+
+    { title: 'EVALUATION & COURSEWARE', isHeader: true },
+    { path: '/faculty/assessments', label: 'Assessment & Marks', icon: '📋' },
+    { path: '/faculty/assignments', label: 'Assignments & Tasks', icon: '📝' },
+    { path: '/faculty/materials', label: 'Course Study Materials', icon: '📁' },
+
+    { title: 'STUDENT ENGAGEMENT', isHeader: true },
+    { path: '/faculty/announcements', label: 'Course Announcements', icon: '📢' },
+    { path: '/faculty/activities', label: 'Activity & OD Review', icon: '🎖️' },
+    { path: '/faculty/student-requests', label: 'Student Requests Queue', icon: '💬' },
+
+    { title: 'ANALYTICS & PROFILE', isHeader: true },
+    { path: '/faculty/reports', label: 'Course Reports & Risk', icon: '📈' },
+    { path: '/faculty/profile', label: 'Faculty Profile', icon: '👤' }
   ],
   STUDENT: [
-    { title: 'MY SEMESTER ENROLMENT', isHeader: true },
-    { path: '/student/overview', label: 'My Academic Portfolio', icon: '🎓' },
-    { path: '/student/attendance', label: 'My Attendance', icon: '⏱️' },
-    { path: '/student/marks', label: 'My Assessment Marks', icon: '📝' },
-    { path: '/student/results', label: 'My Exam Results', icon: '🏆' },
-    { path: '/student/submit-activity', label: 'Submit Activity / OD', icon: '🎖️' }
+    { title: 'DAILY ACADEMIC WORKSPACE', isHeader: true },
+    { path: '/student/overview', label: 'Daily Academic Dashboard', icon: '📊' },
+    { path: '/student/timetable', label: 'Class Timetable', icon: '🗓️' },
+    { path: '/student/announcements', label: 'Announcements & Notices', icon: '📢' },
+    { path: '/student/assignments', label: 'Assignments & Tasks', icon: '📝' },
+    { path: '/student/materials', label: 'Course Study Materials', icon: '📚' },
+
+    { title: 'ACADEMIC TRANSPARENCY', isHeader: true },
+    { path: '/student/attendance', label: 'Detailed Attendance', icon: '⏱️' },
+    { path: '/student/marks', label: 'Assessment Scores', icon: '📋' },
+    { path: '/student/results', label: 'Exam Results & Grades', icon: '🏆' },
+
+    { title: 'CO-CURRICULAR & WORKFLOW', isHeader: true },
+    { path: '/student/submit-activity', label: 'Activity & OD Claims', icon: '🎖️' },
+
+    { title: 'STUDENT SERVICES & SUPPORT', isHeader: true },
+    { path: '/student/helpdesk', label: 'Helpdesk & Ticketing', icon: '💬' },
+    { path: '/student/profile', label: 'Profile & Documents', icon: '👤' }
   ]
 };
 
@@ -73,7 +107,7 @@ export const Sidebar = () => {
           <button
             onClick={handleExit}
             title="Exit to Platform Access"
-            className="text-white/60 hover:text-white text-xs font-mono p-1"
+            className="text-white/60 hover:text-white text-xs font-mono p-1 cursor-pointer"
           >
             🚪
           </button>
@@ -83,7 +117,7 @@ export const Sidebar = () => {
         <div className="px-4 py-2.5 bg-white/5 border-b border-white/10 flex items-center justify-between">
           <div>
             <div className="text-[9px] font-mono tracking-widest text-white/50 uppercase">AUTHORISED ACCESS</div>
-            <div className="text-xs font-mono text-white font-semibold">
+            <div className="text-xs font-mono text-white font-semibold truncate max-w-[140px]">
               {user?.name || (role === 'ADMIN' ? 'Administrator' : role)}
             </div>
           </div>
@@ -91,7 +125,7 @@ export const Sidebar = () => {
         </div>
 
         {/* Dynamic Navigation Links */}
-        <nav className="p-2 space-y-0.5 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <nav className="p-2 space-y-0.5 max-h-[calc(100vh-170px)] overflow-y-auto">
           {navItems.map((item, idx) => {
             if (item.isHeader) {
               return (
@@ -111,7 +145,7 @@ export const Sidebar = () => {
                 }
               >
                 <span>{item.icon}</span>
-                <span>{item.label}</span>
+                <span className="truncate">{item.label}</span>
               </NavLink>
             );
           })}
@@ -126,7 +160,7 @@ export const Sidebar = () => {
         </div>
         <button
           onClick={handleExit}
-          className="px-2 py-1 text-[10px] text-white/70 hover:text-white border border-white/20 rounded hover:bg-white/10 transition"
+          className="px-2 py-1 text-[10px] text-white/70 hover:text-white border border-white/20 rounded hover:bg-white/10 transition cursor-pointer"
         >
           Exit
         </button>

@@ -37,8 +37,20 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Public endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/health").permitAll()
+
+                // Role-based endpoint protection
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/hod/**").hasRole("HOD")
+                .requestMatchers("/api/faculty/**").hasRole("FACULTY")
+                .requestMatchers("/api/student/**").hasRole("STUDENT")
+
+                // Shared endpoints for any authenticated user
+                .requestMatchers("/api/shared/**").authenticated()
+
+                // Default: require authentication
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
