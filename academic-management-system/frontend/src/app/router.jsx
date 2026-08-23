@@ -9,10 +9,7 @@ const AdminCoursesPage = lazy(() => import('../features/admin/pages/AdminCourses
 const AdminStudentsPage = lazy(() => import('../features/admin/pages/AdminStudentsPage').then(m => ({ default: m.AdminStudentsPage })));
 const AdminFacultyPage = lazy(() => import('../features/admin/pages/AdminFacultyPage').then(m => ({ default: m.AdminFacultyPage })));
 const AdminTimetablePage = lazy(() => import('../features/admin/pages/AdminTimetablePage').then(m => ({ default: m.AdminTimetablePage })));
-const AdminAttendancePage = lazy(() => import('../features/admin/pages/AdminAttendancePage').then(m => ({ default: m.AdminAttendancePage })));
-const AdminMarksPage = lazy(() => import('../features/admin/pages/AdminMarksPage').then(m => ({ default: m.AdminMarksPage })));
-const AdminResultsPage = lazy(() => import('../features/admin/pages/AdminResultsPage').then(m => ({ default: m.AdminResultsPage })));
-const AdminActivitiesPage = lazy(() => import('../features/admin/pages/AdminActivitiesPage').then(m => ({ default: m.AdminActivitiesPage })));
+const AdminAcademicRecordsPage = lazy(() => import('../features/admin/pages/AdminAcademicRecordsPage').then(m => ({ default: m.AdminAcademicRecordsPage })));
 const AdminReportsPage = lazy(() => import('../features/admin/pages/AdminReportsPage').then(m => ({ default: m.AdminReportsPage })));
 const AdminAuditPage = lazy(() => import('../features/admin/pages/AdminAuditPage').then(m => ({ default: m.AdminAuditPage })));
 
@@ -63,10 +60,16 @@ export const router = createBrowserRouter([
       { path: 'admin/students', element: <SuspenseWrapper><AdminStudentsPage /></SuspenseWrapper> },
       { path: 'admin/faculty', element: <SuspenseWrapper><AdminFacultyPage /></SuspenseWrapper> },
       { path: 'admin/timetable', element: <SuspenseWrapper><AdminTimetablePage /></SuspenseWrapper> },
-      { path: 'admin/attendance', element: <SuspenseWrapper><AdminAttendancePage /></SuspenseWrapper> },
-      { path: 'admin/marks', element: <SuspenseWrapper><AdminMarksPage /></SuspenseWrapper> },
-      { path: 'admin/results', element: <SuspenseWrapper><AdminResultsPage /></SuspenseWrapper> },
-      { path: 'admin/activities', element: <SuspenseWrapper><AdminActivitiesPage /></SuspenseWrapper> },
+      
+      // Unified Semester Governance Workspace
+      { path: 'admin/academic-records', element: <SuspenseWrapper><AdminAcademicRecordsPage /></SuspenseWrapper> },
+      
+      // Legacy Route Redirects to Unified Academic Records
+      { path: 'admin/attendance', element: <Navigate to="/admin/academic-records" replace /> },
+      { path: 'admin/marks', element: <Navigate to="/admin/academic-records" replace /> },
+      { path: 'admin/results', element: <Navigate to="/admin/academic-records" replace /> },
+      { path: 'admin/activities', element: <Navigate to="/admin/academic-records" replace /> },
+      
       { path: 'admin/reports', element: <SuspenseWrapper><AdminReportsPage /></SuspenseWrapper> },
       { path: 'admin/audit', element: <SuspenseWrapper><AdminAuditPage /></SuspenseWrapper> },
 

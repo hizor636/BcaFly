@@ -116,7 +116,7 @@ export const AdminOverviewPage = () => {
           value={`${avgAttendance}%`}
           subtitle="● Benchmark: 75%"
           valueColor="text-emerald-700"
-          onClick={() => navigate('/admin/attendance')}
+          onClick={() => navigate('/admin/academic-records')}
         />
       </div>
 

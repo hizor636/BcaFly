@@ -1,12 +1,13 @@
 /**
  * BcaFly Unified Workspace Store
  * Manages 6-semester isolated academic datasets, persistence in localStorage,
- * and state mutation helpers with audit logging.
+ * academic file uploads, and state mutation helpers with audit logging.
  */
 
 const STORAGE_KEY = 'bcafly_workspace_v2';
 const AUDIT_KEY = 'bcafly_audit_logs_v2';
 const ACTIVITIES_KEY = 'bcafly_activities_v2';
+const FILES_KEY = 'bcafly_academic_files_v2';
 
 export const MASTER_FACULTY = [
   { id: 'FAC01', name: 'Dr. A. Sharma', role: 'Professor & HOD', dept: 'Computer Applications', email: 'sharma@bcafly.edu', phone: '+91 98450 11223' },
@@ -141,6 +142,89 @@ export const INITIAL_ACTIVITIES = [
   { id: 'ACT-104', sem: 3, studentId: 'student-s3-001', studentName: 'Rahul Kumar', reg: 'BCS23CA001', title: 'State Level Web Dev Symposium', org: 'Anna University', date: '2025-09-05', category: 'Symposium', od: true, status: 'PENDING', skills: 'Tailwind CSS, Node.js' }
 ];
 
+export const INITIAL_ACADEMIC_FILES = [
+  {
+    id: 'FILE-101',
+    fileName: 'CIA_1_RDBMS_Master_Scores.xlsx',
+    storedName: 'sec3_cia1_rdbms_2026.xlsx',
+    ext: 'XLSX',
+    size: '1.2 MB',
+    sizeBytes: 1258291,
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    sem: 3,
+    courseCode: 'BCA301',
+    studentId: null,
+    studentName: 'All Enrolled Students',
+    recordType: 'Assessment',
+    title: 'CIA 1 Marksheet — RDBMS',
+    description: 'Continuous Internal Assessment 1 compiled scores with component breakup.',
+    uploadedBy: 'Dr. A. Sharma',
+    uploaderRole: 'ADMINISTRATOR',
+    uploadedAt: '23 Aug 2026, 10:30 AM',
+    visibility: 'All'
+  },
+  {
+    id: 'FILE-102',
+    fileName: 'Semester_3_Attendance_Shortage_Register.pdf',
+    storedName: 'sem3_att_shortage_signed.pdf',
+    ext: 'PDF',
+    size: '845 KB',
+    sizeBytes: 865280,
+    mimeType: 'application/pdf',
+    sem: 3,
+    courseCode: 'ALL',
+    studentId: null,
+    studentName: 'Department Consolidated',
+    recordType: 'Attendance',
+    title: 'Official Attendance Shortage Notice (Sem 3)',
+    description: 'Signed attendance shortage statement for condonation submission.',
+    uploadedBy: 'Dr. A. Sharma',
+    uploaderRole: 'HOD',
+    uploadedAt: '23 Aug 2026, 11:15 AM',
+    visibility: 'All'
+  },
+  {
+    id: 'FILE-103',
+    fileName: 'Rahul_Kumar_Hackathon_Certificate.pdf',
+    storedName: 'rahul_iit_madras_hackathon.pdf',
+    ext: 'PDF',
+    size: '2.4 MB',
+    sizeBytes: 2516582,
+    mimeType: 'application/pdf',
+    sem: 3,
+    courseCode: 'N/A',
+    studentId: 'student-s3-001',
+    studentName: 'Rahul Kumar',
+    recordType: 'Activity Portfolio',
+    title: 'IIT Madras National Hackathon Merit Certificate',
+    description: 'First prize certificate in Full Stack Web Track (Requesting OD credit).',
+    uploadedBy: 'Rahul Kumar',
+    uploaderRole: 'STUDENT',
+    uploadedAt: '22 Aug 2026, 04:45 PM',
+    visibility: 'All'
+  },
+  {
+    id: 'FILE-104',
+    fileName: 'BCA_Sem3_End_Semester_Result_Gazette.xlsx',
+    storedName: 'bca_s3_results_gazette_2026.xlsx',
+    ext: 'XLSX',
+    size: '3.1 MB',
+    sizeBytes: 3250585,
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    sem: 3,
+    courseCode: 'ALL',
+    studentId: null,
+    studentName: 'All Students',
+    recordType: 'Result',
+    title: 'Semester 3 University Examination Gazette',
+    description: 'Controller of Examinations signed result ledger and SGPA records.',
+    uploadedBy: 'Dr. A. Sharma',
+    uploaderRole: 'ADMINISTRATOR',
+    uploadedAt: '20 Aug 2026, 02:00 PM',
+    visibility: 'All'
+  }
+];
+
 export const INITIAL_AUDIT_LOGS = [
   { id: 'AUD-101', time: '10:00 AM', actor: 'Dr. A. Sharma', role: 'ADMINISTRATOR', action: 'Semester Workspace Init', details: 'Initialized isolated BCA Academic Workspaces for Semesters 1 to 6.' },
   { id: 'AUD-102', time: '10:15 AM', actor: 'Prof. K. Rao', role: 'FACULTY', action: 'Attendance Recorded', details: 'Attendance marked for BCA302 (Java OOP) — 9 Present, 0 Absent.' }
@@ -166,7 +250,6 @@ export function loadWorkspaceData() {
     }
     return JSON.parse(raw);
   } catch (err) {
-    console.error('Error loading workspace:', err);
     return INITIAL_SEMESTERS;
   }
 }
@@ -212,4 +295,23 @@ export function loadActivities() {
 export function saveActivities(acts) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(ACTIVITIES_KEY, JSON.stringify(acts));
+}
+
+export function loadAcademicFiles() {
+  if (typeof window === 'undefined') return INITIAL_ACADEMIC_FILES;
+  try {
+    const raw = localStorage.getItem(FILES_KEY);
+    if (!raw) {
+      localStorage.setItem(FILES_KEY, JSON.stringify(INITIAL_ACADEMIC_FILES));
+      return INITIAL_ACADEMIC_FILES;
+    }
+    return JSON.parse(raw);
+  } catch (err) {
+    return INITIAL_ACADEMIC_FILES;
+  }
+}
+
+export function saveAcademicFiles(files) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(FILES_KEY, JSON.stringify(files));
 }

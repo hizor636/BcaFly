@@ -7,10 +7,14 @@ import {
   loadAuditLogs,
   saveAuditLogs,
   loadActivities,
-  saveActivities
+  saveActivities,
+  loadAcademicFiles,
+  saveAcademicFiles
 } from '../services/workspaceStore';
 
 const AcademicContext = createContext(null);
+
+const REJECTED_EXTENSIONS = ['exe', 'msi', 'bat', 'cmd', 'sh', 'apk', 'dmg', 'com', 'scr', 'vbs'];
 
 export const AcademicProvider = ({ children }) => {
   const [activeSemester, setActiveSemester] = useState(3);
@@ -18,6 +22,7 @@ export const AcademicProvider = ({ children }) => {
   const [faculty] = useState(MASTER_FACULTY);
   const [auditLogs, setAuditLogs] = useState(loadAuditLogs());
   const [activities, setActivities] = useState(loadActivities());
+  const [academicFiles, setAcademicFiles] = useState(loadAcademicFiles());
   const [timetable] = useState(INITIAL_TIMETABLE);
 
   // Sync state changes to localStorage
@@ -32,6 +37,10 @@ export const AcademicProvider = ({ children }) => {
   useEffect(() => {
     saveActivities(activities);
   }, [activities]);
+
+  useEffect(() => {
+    saveAcademicFiles(academicFiles);
+  }, [academicFiles]);
 
   const activeWorkspace = semesters[activeSemester] || semesters[3];
 
@@ -162,6 +171,73 @@ export const AcademicProvider = ({ children }) => {
     logAction('Activity Verified', `Activity ${activityId} marked as ${status}. ${remarks}`);
   };
 
+  const uploadAcademicFiles = (metadata, files, uploaderName = 'Administrator', uploaderRole = 'ADMIN') => {
+    if (!files || files.length === 0) return { success: false, message: 'No files provided.' };
+    if (files.length > 10) return { success: false, message: 'Maximum 10 files allowed per upload.' };
+
+    const newRecords = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const ext = file.name.split('.').pop().toLowerCase();
+
+      // Check for rejected extensions
+      if (REJECTED_EXTENSIONS.includes(ext)) {
+        return { success: false, message: `Executable or script file type (.${ext}) is strictly prohibited for security.` };
+      }
+
+      // Check max size: 25 MB = 25 * 1024 * 1024 bytes
+      if (file.size > 25 * 1024 * 1024) {
+        return { success: false, message: `File "${file.name}" exceeds the maximum 25 MB limit.` };
+      }
+
+      const sizeStr = file.size > 1024 * 1024
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+        : `${Math.round(file.size / 1024)} KB`;
+
+      const record = {
+        id: `FILE-${Math.floor(1000 + Math.random() * 9000)}`,
+        fileName: file.name,
+        storedName: `sem${activeSemester}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`,
+        ext: ext.toUpperCase(),
+        size: sizeStr,
+        sizeBytes: file.size,
+        mimeType: file.type || 'application/octet-stream',
+        sem: Number(metadata.sem) || activeSemester,
+        courseCode: metadata.courseCode || 'ALL',
+        studentId: metadata.studentId || null,
+        studentName: metadata.studentName || 'All Students',
+        recordType: metadata.recordType || 'Assessment',
+        title: metadata.title || file.name,
+        description: metadata.description || '',
+        uploadedBy: uploaderName,
+        uploaderRole: uploaderRole.toUpperCase(),
+        uploadedAt: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        visibility: metadata.visibility || 'All'
+      };
+
+      newRecords.push(record);
+    }
+
+    setAcademicFiles(prev => [...newRecords, ...prev]);
+    logAction(
+      'Academic Files Uploaded',
+      `Uploaded ${newRecords.length} file(s) for Semester ${activeSemester} under [${metadata.recordType}].`,
+      uploaderName,
+      uploaderRole
+    );
+
+    return { success: true, count: newRecords.length };
+  };
+
+  const deleteAcademicFile = (fileId) => {
+    const target = academicFiles.find(f => f.id === fileId);
+    setAcademicFiles(prev => prev.filter(f => f.id !== fileId));
+    if (target) {
+      logAction('Academic File Deleted', `Removed file "${target.fileName}" (${target.title}) from Semester ${target.sem}.`);
+    }
+  };
+
   return (
     <AcademicContext.Provider
       value={{
@@ -172,6 +248,7 @@ export const AcademicProvider = ({ children }) => {
         faculty,
         auditLogs,
         activities,
+        academicFiles,
         timetable,
         addStudent,
         addCourse,
@@ -179,6 +256,8 @@ export const AcademicProvider = ({ children }) => {
         updateStudentMarks,
         submitActivity,
         verifyActivity,
+        uploadAcademicFiles,
+        deleteAcademicFile,
         logAction
       }}
     >
