@@ -113,7 +113,7 @@ function StudentDashboard({
         </article>
       </section>
 
-      <section className="bg-white p-6 rounded-lg border border-[#D9D2BE] shadow-sm">
+      <section className="bg-white p-6 rounded-lg border border-[#D9D2BE] shadow-sm mb-8">
         <h2 className="font-serif text-xl font-bold mb-4">My Courses (Semester {session.semester})</h2>
 
         {dashboardData.courses.length === 0 ? (
@@ -130,6 +130,42 @@ function StudentDashboard({
                 </div>
               </article>
             ))}
+          </div>
+        )}
+      </section>
+
+      <section className="bg-white p-6 rounded-lg border border-[#D9D2BE] shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-serif text-xl font-bold">Class Timetable (Semester {session.semester})</h2>
+          <span className="text-xs font-mono bg-[#EFEADB] px-2.5 py-1 rounded border border-[#D9D2BE] text-[#1B2A4A] font-bold">
+            🗓️ Official Schedule
+          </span>
+        </div>
+
+        {dashboardData.timetable.length === 0 ? (
+          <p className="text-xs font-mono text-[#5B6478]">No timetable sessions scheduled yet for Semester {session.semester}.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            {dashboardData.timetable.map((entry) => {
+              const course = dashboardData.courses.find((c) => c.id === entry.courseId || c.code === entry.courseId);
+              return (
+                <div key={entry.id} className="p-3.5 rounded-lg border border-[#D9D2BE] bg-[#FDFBF7] space-y-1.5 font-mono text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#B8863B]">{entry.day}</span>
+                    <span className="bg-white px-2 py-0.5 rounded border border-[#D9D2BE] font-bold text-[#1B2A4A]">
+                      {entry.startTime} – {entry.endTime}
+                    </span>
+                  </div>
+                  <p className="font-sans font-bold text-sm text-[#1B2A4A]">
+                    {course ? `${course.code}: ${course.title}` : entry.courseId}
+                  </p>
+                  <div className="text-[11px] text-[#5B6478] pt-1 border-t border-[#D9D2BE]/60 flex items-center justify-between">
+                    <span>Room: <strong className="text-[#1B2A4A]">{entry.room}</strong></span>
+                    {course?.facultyName && <span>{course.facultyName}</span>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </section>

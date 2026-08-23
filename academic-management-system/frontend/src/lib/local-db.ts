@@ -110,7 +110,18 @@ const initialDatabase: BcaFlyDatabase = {
     { id: "c-304", code: "BCA304", title: "Operating Systems Principles", semester: 3, credits: 4, facultyName: "Dr. S. Nair" },
     { id: "c-305", code: "BCA305L", title: "DBMS & Java Programming Lab", semester: 3, credits: 2, facultyName: "Prof. K. Rao" }
   ],
-  timetable: [],
+  timetable: [
+    { id: "tt-301", semester: 3, courseId: "c-301", day: "Monday", startTime: "09:00 AM", endTime: "10:00 AM", room: "Room 301" },
+    { id: "tt-302", semester: 3, courseId: "c-302", day: "Monday", startTime: "10:00 AM", endTime: "11:00 AM", room: "Room 302" },
+    { id: "tt-303", semester: 3, courseId: "c-303", day: "Monday", startTime: "11:15 AM", endTime: "12:15 PM", room: "Room 303" },
+    { id: "tt-304", semester: 3, courseId: "c-305", day: "Monday", startTime: "01:15 PM", endTime: "03:15 PM", room: "Database Lab" },
+    { id: "tt-305", semester: 3, courseId: "c-302", day: "Tuesday", startTime: "09:00 AM", endTime: "10:00 AM", room: "Room 302" },
+    { id: "tt-306", semester: 3, courseId: "c-304", day: "Tuesday", startTime: "10:00 AM", endTime: "11:00 AM", room: "Room 304" },
+    { id: "tt-307", semester: 3, courseId: "c-301", day: "Tuesday", startTime: "11:15 AM", endTime: "12:15 PM", room: "Room 301" },
+    { id: "tt-101", semester: 1, courseId: "c-101", day: "Monday", startTime: "09:00 AM", endTime: "10:00 AM", room: "Room 101" },
+    { id: "tt-102", semester: 1, courseId: "c-102", day: "Monday", startTime: "10:00 AM", endTime: "11:00 AM", room: "Room 102" },
+    { id: "tt-103", semester: 1, courseId: "c-105", day: "Monday", startTime: "01:15 PM", endTime: "03:15 PM", room: "C Programming Lab" }
+  ],
   attendance: [
     { id: "att-001", studentId: "student-s3-001", courseId: "c-301", date: "2026-08-10", status: "present" },
     { id: "att-002", studentId: "student-s3-001", courseId: "c-302", date: "2026-08-10", status: "present" },

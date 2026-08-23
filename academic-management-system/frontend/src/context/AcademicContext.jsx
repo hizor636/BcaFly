@@ -1057,6 +1057,51 @@ export const AcademicProvider = ({ children }) => {
     }
   };
 
+  const timetable = {
+    1: [
+      { day: 'Monday', slot1: 'BCA101 (C Prog)', slot2: 'BCA102 (Discrete Math)', slot3: 'BCA103 (Digital Logic)', slot4: 'BCA105L (C Lab)', slot5: 'BCA105L (C Lab)' },
+      { day: 'Tuesday', slot1: 'BCA102 (Discrete Math)', slot2: 'BCA104 (Pro Comm)', slot3: 'BCA101 (C Prog)', slot4: 'Library / Mentoring', slot5: 'Sports' },
+      { day: 'Wednesday', slot1: 'BCA103 (Digital Logic)', slot2: 'BCA101 (C Prog)', slot3: 'BCA102 (Discrete Math)', slot4: 'BCA104 (Pro Comm)', slot5: 'Remedial' },
+      { day: 'Thursday', slot1: 'BCA104 (Pro Comm)', slot2: 'BCA103 (Digital Logic)', slot3: 'BCA101 (C Prog)', slot4: 'BCA105L (C Lab)', slot5: 'BCA105L (C Lab)' },
+      { day: 'Friday', slot1: 'BCA101 (C Prog)', slot2: 'BCA102 (Discrete Math)', slot3: 'BCA104 (Pro Comm)', slot4: 'Club Activity', slot5: 'Placement Training' }
+    ],
+    2: [
+      { day: 'Monday', slot1: 'BCA201 (Data Structures)', slot2: 'BCA202 (DBMS)', slot3: 'BCA203 (Maths II)', slot4: 'BCA205L (DS Lab)', slot5: 'BCA205L (DS Lab)' },
+      { day: 'Tuesday', slot1: 'BCA202 (DBMS)', slot2: 'BCA204 (Env Studies)', slot3: 'BCA201 (Data Structures)', slot4: 'Library', slot5: 'Seminar' },
+      { day: 'Wednesday', slot1: 'BCA203 (Maths II)', slot2: 'BCA201 (Data Structures)', slot3: 'BCA202 (DBMS)', slot4: 'BCA204 (Env Studies)', slot5: 'Sports' },
+      { day: 'Thursday', slot1: 'BCA204 (Env Studies)', slot2: 'BCA203 (Maths II)', slot3: 'BCA201 (Data Structures)', slot4: 'BCA205L (DS Lab)', slot5: 'BCA205L (DS Lab)' },
+      { day: 'Friday', slot1: 'BCA201 (Data Structures)', slot2: 'BCA202 (DBMS)', slot3: 'BCA204 (Env Studies)', slot4: 'Club Activity', slot5: 'Placement Training' }
+    ],
+    3: [
+      { day: 'Monday', slot1: 'BCA301 (RDBMS)', slot2: 'BCA302 (Java OOP)', slot3: 'BCA303 (Comp Networks)', slot4: 'BCA305L (DBMS/Java Lab)', slot5: 'BCA305L (DBMS/Java Lab)' },
+      { day: 'Tuesday', slot1: 'BCA302 (Java OOP)', slot2: 'BCA304 (OS Principles)', slot3: 'BCA301 (RDBMS)', slot4: 'SEM-301 (Library/Seminar)', slot5: 'Mentoring' },
+      { day: 'Wednesday', slot1: 'BCA303 (Comp Networks)', slot2: 'BCA301 (RDBMS)', slot3: 'BCA304 (OS Principles)', slot4: 'BCA302 (Java OOP)', slot5: 'Sports' },
+      { day: 'Thursday', slot1: 'BCA304 (OS Principles)', slot2: 'BCA303 (Comp Networks)', slot3: 'BCA302 (Java OOP)', slot4: 'BCA305L (Java Lab)', slot5: 'BCA305L (Java Lab)' },
+      { day: 'Friday', slot1: 'BCA301 (RDBMS)', slot2: 'BCA304 (OS Principles)', slot3: 'BCA303 (Comp Networks)', slot4: 'CRT-301 (Placement)', slot5: 'CRT-301 (Placement)' }
+    ],
+    4: [
+      { day: 'Monday', slot1: 'BCA401 (Software Eng)', slot2: 'BCA402 (Python Data)', slot3: 'BCA403 (Web Tech)', slot4: 'BCA405L (Web/Python Lab)', slot5: 'BCA405L (Web/Python Lab)' },
+      { day: 'Tuesday', slot1: 'BCA402 (Python Data)', slot2: 'BCA404 (Optimization)', slot3: 'BCA401 (Software Eng)', slot4: 'Library', slot5: 'Mentoring' },
+      { day: 'Wednesday', slot1: 'BCA403 (Web Tech)', slot2: 'BCA401 (Software Eng)', slot3: 'BCA404 (Optimization)', slot4: 'BCA402 (Python Data)', slot5: 'Sports' },
+      { day: 'Thursday', slot1: 'BCA404 (Optimization)', slot2: 'BCA403 (Web Tech)', slot3: 'BCA401 (Software Eng)', slot4: 'BCA405L (Lab)', slot5: 'BCA405L (Lab)' },
+      { day: 'Friday', slot1: 'BCA401 (Software Eng)', slot2: 'BCA402 (Python Data)', slot3: 'BCA404 (Optimization)', slot4: 'Club Activity', slot5: 'Placement Training' }
+    ],
+    5: [
+      { day: 'Monday', slot1: 'BCA501 (Cloud Computing)', slot2: 'BCA502 (Mobile Apps)', slot3: 'BCA503E (AI Systems)', slot4: 'BCA505P (Mini Project)', slot5: 'BCA505P (Mini Project)' },
+      { day: 'Tuesday', slot1: 'BCA502 (Mobile Apps)', slot2: 'BCA504 (Info Security)', slot3: 'BCA501 (Cloud Computing)', slot4: 'Seminar', slot5: 'Mentoring' },
+      { day: 'Wednesday', slot1: 'BCA503E (AI Systems)', slot2: 'BCA501 (Cloud Computing)', slot3: 'BCA504 (Info Security)', slot4: 'BCA502 (Mobile Apps)', slot5: 'Project Work' },
+      { day: 'Thursday', slot1: 'BCA504 (Info Security)', slot2: 'BCA503E (AI Systems)', slot3: 'BCA501 (Cloud Computing)', slot4: 'BCA505P (Project Lab)', slot5: 'BCA505P (Project Lab)' },
+      { day: 'Friday', slot1: 'BCA501 (Cloud Computing)', slot2: 'BCA502 (Mobile Apps)', slot3: 'BCA504 (Info Security)', slot4: 'Industry Connect', slot5: 'Placement Prep' }
+    ],
+    6: [
+      { day: 'Monday', slot1: 'BCA601 (Full Stack)', slot2: 'BCA602E (Machine Learning)', slot3: 'BCA603 (Cyber Law)', slot4: 'BCA604I (Capstone Project)', slot5: 'BCA604I (Capstone Project)' },
+      { day: 'Tuesday', slot1: 'BCA602E (Machine Learning)', slot2: 'BCA603 (Cyber Law)', slot3: 'BCA601 (Full Stack)', slot4: 'Incubation Lab', slot5: 'Viva Prep' },
+      { day: 'Wednesday', slot1: 'BCA603 (Cyber Law)', slot2: 'BCA601 (Full Stack)', slot3: 'BCA602E (Machine Learning)', slot4: 'BCA604I (Internship)', slot5: 'Industry Mentoring' },
+      { day: 'Thursday', slot1: 'BCA601 (Full Stack)', slot2: 'BCA602E (Machine Learning)', slot3: 'BCA603 (Cyber Law)', slot4: 'BCA604I (Capstone Lab)', slot5: 'BCA604I (Capstone Lab)' },
+      { day: 'Friday', slot1: 'BCA601 (Full Stack)', slot2: 'BCA602E (Machine Learning)', slot3: 'BCA605 (Viva Voce)', slot4: 'Placement Drive', slot5: 'Placement Drive' }
+    ]
+  };
+
   return (
     <AcademicContext.Provider
       value={{
@@ -1068,6 +1113,7 @@ export const AcademicProvider = ({ children }) => {
         auditLogs,
         activities,
         academicFiles,
+        timetable,
         timetableEntries,
         announcements,
         assignments,
