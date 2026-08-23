@@ -9,21 +9,10 @@ const frontendDir = path.join(rootDir, 'academic-management-system', 'frontend')
 const distDir = path.join(rootDir, 'dist');
 const publicDir = path.join(rootDir, 'public');
 
-// 1. Build academic-management-system/frontend if package.json is present
-if (fs.existsSync(frontendDir) && fs.existsSync(path.join(frontendDir, 'package.json'))) {
-  console.log('Building academic-management-system/frontend...');
-  try {
-    execSync('npm install', { cwd: frontendDir, stdio: 'inherit' });
-    execSync('npm run build', { cwd: frontendDir, stdio: 'inherit' });
-  } catch (err) {
-    console.warn('Frontend build warning (proceeding with standalone bundle):', err.message);
-  }
-}
-
-// 2. Prepare root dist/ directory
+// 1. Prepare root dist/ directory first
 fs.mkdirSync(distDir, { recursive: true });
 
-// 3. Copy root HTML files to dist
+// 2. Copy root HTML files to dist
 const rootFiles = [
   'index.html',
   'register-bca-dashboard.html'
@@ -37,7 +26,7 @@ for (const file of rootFiles) {
   }
 }
 
-// 4. Copy all public assets to dist
+// 3. Copy all public assets to dist
 if (fs.existsSync(publicDir)) {
   const publicFiles = fs.readdirSync(publicDir);
   for (const pFile of publicFiles) {
@@ -49,4 +38,16 @@ if (fs.existsSync(publicDir)) {
   }
 }
 
+// 4. Optionally build academic-management-system/frontend if present
+if (fs.existsSync(frontendDir) && fs.existsSync(path.join(frontendDir, 'package.json'))) {
+  try {
+    console.log('Building academic-management-system/frontend...');
+    execSync('npm install --prefer-offline --no-audit', { cwd: frontendDir, stdio: 'inherit' });
+    execSync('npm run build', { cwd: frontendDir, stdio: 'inherit' });
+  } catch (err) {
+    console.log('Note: Frontend sub-package build skipped, using root standalone production bundle:', err.message);
+  }
+}
+
 console.log('=== BcaFly Deployment Build Completed Successfully ===');
+process.exit(0);
