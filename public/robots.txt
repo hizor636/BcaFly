@@ -1,0 +1,3 @@
+# Allow indexing of public portal
+User-agent: *
+Allow: /
