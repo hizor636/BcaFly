@@ -76,7 +76,7 @@ export const PLATFORM_NAV = {
   ]
 };
 
-export const Sidebar = () => {
+export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -86,15 +86,20 @@ export const Sidebar = () => {
   const handleExit = () => {
     logout();
     navigate('/');
+    if (onClose) onClose();
   };
 
-  return (
-    <aside className="w-64 shrink-0 bg-[var(--ink-dark)] text-[var(--parchment)] flex flex-col justify-between border-r border-white/10 shadow-xl min-h-screen">
+  const handleNavClick = () => {
+    if (onClose) onClose();
+  };
+
+  const sidebarContent = (
+    <div className="h-full flex flex-col justify-between overflow-y-auto">
       <div>
         {/* Platform Header */}
         <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#F5E8C9] text-[#B8892D] flex items-center justify-center font-brand font-bold text-lg shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-[#F5E8C9] text-[#B8892D] flex items-center justify-center font-brand font-bold text-lg shadow-sm shrink-0">
               B
             </div>
             <div>
@@ -104,13 +109,23 @@ export const Sidebar = () => {
               </div>
             </div>
           </div>
-          <button
-            onClick={handleExit}
-            title="Exit to Platform Access"
-            className="text-white/60 hover:text-white text-xs font-mono p-1 cursor-pointer"
-          >
-            🚪
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleExit}
+              title="Exit to Platform Access"
+              className="text-white/60 hover:text-white text-xs font-mono p-1.5 cursor-pointer rounded hover:bg-white/10"
+            >
+              🚪
+            </button>
+            {/* Mobile close button */}
+            <button
+              onClick={onClose}
+              title="Close menu"
+              className="lg:hidden text-white/60 hover:text-white text-base font-mono p-1.5 cursor-pointer rounded hover:bg-white/10"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Authorized Platform Label */}
@@ -125,7 +140,7 @@ export const Sidebar = () => {
         </div>
 
         {/* Dynamic Navigation Links */}
-        <nav className="p-2 space-y-0.5 max-h-[calc(100vh-170px)] overflow-y-auto">
+        <nav className="p-2 space-y-0.5">
           {navItems.map((item, idx) => {
             if (item.isHeader) {
               return (
@@ -138,8 +153,9 @@ export const Sidebar = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={handleNavClick}
                 className={({ isActive }) =>
-                  `nav-item w-full flex items-center gap-2.5 px-3 py-2 text-xs font-mono rounded ${
+                  `nav-item w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-mono rounded ${
                     isActive ? 'active' : ''
                   }`
                 }
@@ -154,17 +170,42 @@ export const Sidebar = () => {
 
       {/* User Footnote */}
       <div className="p-3 border-t border-white/10 bg-black/20 flex items-center justify-between text-xs font-mono">
-        <div className="truncate">
+        <div className="truncate mr-2">
           <div className="text-white font-semibold truncate">{user?.name || 'Dr. A. Sharma'}</div>
           <div className="text-[10px] text-[var(--brass)]">{user?.roleLabel || role}</div>
         </div>
         <button
           onClick={handleExit}
-          className="px-2 py-1 text-[10px] text-white/70 hover:text-white border border-white/20 rounded hover:bg-white/10 transition cursor-pointer"
+          className="px-2 py-1 text-[10px] text-white/70 hover:text-white border border-white/20 rounded hover:bg-white/10 transition cursor-pointer shrink-0 min-h-[30px]"
         >
           Exit
         </button>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar (visible on lg screens >= 1024px) */}
+      <aside className="hidden lg:flex w-64 shrink-0 bg-[var(--ink-dark)] text-[var(--parchment)] flex-col justify-between border-r border-white/10 shadow-xl min-h-screen">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Off-canvas Drawer (visible on screens < 1024px when open) */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-fadeIn"
+            onClick={onClose}
+          />
+
+          {/* Drawer content */}
+          <aside className="relative w-72 max-w-[85vw] bg-[var(--ink-dark)] text-[var(--parchment)] flex flex-col justify-between shadow-2xl z-10 min-h-full">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };

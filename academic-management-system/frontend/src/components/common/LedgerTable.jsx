@@ -20,21 +20,21 @@ export const LedgerTable = ({
   return (
     <div className="card overflow-hidden">
       {(searchPlaceholder || extraToolbar) && (
-        <div className="p-4 border-b border-[var(--rule)] bg-[var(--parchment-2)] flex items-center justify-between flex-wrap gap-3">
+        <div className="p-3 sm:p-4 border-b border-[var(--rule)] bg-[var(--parchment-2)] flex items-center justify-between flex-wrap gap-2 sm:gap-3">
           {searchPlaceholder ? (
-            <div className="relative min-w-[240px] max-w-sm flex-1">
+            <div className="relative w-full sm:w-auto sm:min-w-[240px] sm:max-w-sm flex-1">
               <input
                 type="text"
                 value={searchValue || ''}
                 onChange={(e) => onSearchChange && onSearchChange(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="field-input text-xs pl-8 pr-3 py-1.5"
+                className="field-input text-xs pl-8 pr-3 py-1.5 min-h-[38px]"
               />
               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-[var(--slate)]">🔍</span>
             </div>
           ) : <div />}
 
-          {extraToolbar && <div>{extraToolbar}</div>}
+          {extraToolbar && <div className="w-full sm:w-auto">{extraToolbar}</div>}
         </div>
       )}
 

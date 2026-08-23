@@ -76,83 +76,90 @@ export const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--parchment)] text-[var(--ink)]">
+    <div className="min-h-screen bg-[var(--parchment)] text-[var(--ink)] overflow-x-hidden">
       {/* Landing Header */}
-      <header className="max-w-6xl mx-auto px-6 pt-12 pb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#F5E8C9] border border-[#EAD6AB] text-[#B8892D] flex items-center justify-center font-brand font-bold text-2xl shadow-xs">
-            B
-          </div>
-          <div>
-            <div className="font-brand font-bold text-2xl text-[var(--ink)] leading-none">BcaFly</div>
-            <div className="text-[10px] font-mono font-bold tracking-widest text-[var(--brass-2)] uppercase mt-1">
-              BCA Academic Workspaces
+      <header className="page-container pt-8 sm:pt-12 pb-4 sm:pb-6">
+        <div className="site-header">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#F5E8C9] border border-[#EAD6AB] text-[#B8892D] flex items-center justify-center font-brand font-bold text-xl sm:text-2xl shadow-xs shrink-0">
+              B
+            </div>
+            <div>
+              <div className="font-brand font-bold text-xl sm:text-2xl text-[var(--ink)] leading-none">BcaFly</div>
+              <div className="text-[10px] font-mono font-bold tracking-widest text-[var(--brass-2)] uppercase mt-1">
+                BCA Academic Workspaces
+              </div>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="ws-tag">AUTHORISED PLATFORM ACCESS</span>
-          <button
-            onClick={() => openStaffLogin('admin')}
-            className="btn-ink text-xs font-mono px-4 py-2 rounded-md"
-          >
-            ADMINISTRATOR LOGIN →
-          </button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <span className="ws-tag justify-center text-center text-[10px] sm:text-[11px] py-1">
+              AUTHORISED PLATFORM ACCESS
+            </span>
+            <button
+              onClick={() => openStaffLogin('admin')}
+              className="btn-ink text-xs font-mono px-4 py-2.5 rounded-md w-full sm:w-auto min-h-[44px]"
+            >
+              ADMINISTRATOR LOGIN →
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Main Hero & 4 Platform Cards */}
-      <section className="max-w-6xl mx-auto px-6 py-6 grid md:grid-cols-12 gap-10 items-center">
-        <div className="md:col-span-6">
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--brass-soft)] border border-[var(--brass)] text-[var(--brass-2)] font-mono text-[11px] mb-4">
-            <span>🏛️</span> SIX SEMESTER-BASED ENVIRONMENTS
+      <section className="page-container py-4 sm:py-8 grid lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+        <div className="lg:col-span-6">
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[var(--brass-soft)] border border-[var(--brass)] text-[var(--brass-2)] font-mono text-[10px] sm:text-[11px] mb-4">
+            <span className="text-sm">🏛️</span> SIX SEMESTER-BASED ENVIRONMENTS
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl leading-[1.12] mb-5 text-[var(--ink)] brass-underline pb-3 font-semibold">
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl leading-[1.12] mb-4 sm:mb-5 text-[var(--ink)] brass-underline pb-3 font-semibold text-safe">
             BCA Academic Workspaces.<br />Independent Semester Data.
           </h1>
-          <p className="text-[var(--slate)] text-sm sm:text-base leading-relaxed mb-6 max-w-lg">
+          <p className="text-[var(--slate)] text-sm sm:text-base leading-relaxed mb-6 max-w-lg text-safe">
             BcaFly supports all six BCA semesters through isolated academic environments. Each semester maintains
             independent course configurations, student enrolments, faculty allocations, timetables, and assessments.
           </p>
 
           {/* Semester Navigator Pills Preview */}
           <div className="mb-6">
-            <div className="text-[11px] font-mono text-[var(--slate)] uppercase font-semibold mb-2">
+            <div className="text-[11px] font-mono text-[var(--slate)] uppercase font-semibold mb-2.5">
               Supported Semester Workspaces:
             </div>
-            <div className="flex flex-wrap gap-2 text-xs font-mono">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs font-mono">
               {[1, 2, 3, 4, 5, 6].map(s => (
-                <span key={s} className="px-2.5 py-1 bg-white border border-[var(--rule)] rounded font-semibold text-[var(--ink)]">
-                  [ Semester {s} ]
-                </span>
+                <div
+                  key={s}
+                  className="px-3 py-2 bg-white border border-[var(--rule)] rounded-md font-semibold text-[var(--ink)] text-center flex items-center justify-center min-h-[40px] shadow-xs"
+                >
+                  Semester {s}
+                </div>
               ))}
             </div>
           </div>
 
-          <p className="text-xs font-mono text-[var(--slate)] uppercase tracking-wider">
+          <p className="text-xs font-mono text-[var(--slate)] uppercase tracking-wider hidden sm:block">
             Select your authorised platform to enter:
           </p>
         </div>
 
         {/* Four Independent Platforms Grid */}
-        <div className="md:col-span-6 ledger-lines rounded-lg p-3 bg-[var(--parchment-2)] border border-[var(--rule)]">
-          <div className="grid grid-cols-2 gap-3.5 p-2">
+        <div className="lg:col-span-6 ledger-lines rounded-xl p-3 sm:p-4 bg-[var(--parchment-2)] border border-[var(--rule)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
             {/* Platform: Administrator */}
             <button
               onClick={() => openStaffLogin('admin')}
-              className="role-card rounded-lg p-5 text-left flex flex-col justify-between h-44 cursor-pointer"
+              className="role-card rounded-lg p-4 sm:p-5 text-left flex flex-col justify-between min-h-[160px] sm:h-48 cursor-pointer w-full"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-[10px] font-bold text-[var(--brass-2)] tracking-wider">ALL SIX SEMESTERS</span>
-                  <span className="text-base">👑</span>
+                  <span className="font-mono text-[9px] sm:text-[10px] font-bold text-[var(--brass-2)] tracking-wider">ALL SIX SEMESTERS</span>
+                  <span className="text-base sm:text-lg">👑</span>
                 </div>
-                <div className="font-display font-bold text-lg text-[var(--ink)] mb-1">Administrator Platform</div>
-                <div className="text-[11px] text-[var(--slate)] leading-snug">
+                <div className="font-display font-bold text-base sm:text-lg text-[var(--ink)] mb-1 text-safe">Administrator Platform</div>
+                <div className="text-[11px] text-[var(--slate)] leading-snug text-safe">
                   Configure academic setup, manage courses, enrolment rosters, sections, and promotions.
                 </div>
               </div>
-              <div className="font-mono text-[10px] text-[var(--brass)] font-semibold flex items-center gap-1">
+              <div className="font-mono text-[10px] sm:text-[11px] text-[var(--brass)] font-semibold flex items-center gap-1 mt-3 pt-2 border-t border-[var(--rule)]/50 sm:border-t-0">
                 Enter Admin Platform →
               </div>
             </button>
@@ -160,19 +167,19 @@ export const LandingPage = () => {
             {/* Platform: HOD */}
             <button
               onClick={() => openStaffLogin('hod')}
-              className="role-card rounded-lg p-5 text-left flex flex-col justify-between h-44 cursor-pointer"
+              className="role-card rounded-lg p-4 sm:p-5 text-left flex flex-col justify-between min-h-[160px] sm:h-48 cursor-pointer w-full"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-[10px] font-bold text-[var(--brass-2)] tracking-wider">DEPARTMENT-WIDE</span>
-                  <span className="text-base">📊</span>
+                  <span className="font-mono text-[9px] sm:text-[10px] font-bold text-[var(--brass-2)] tracking-wider">DEPARTMENT-WIDE</span>
+                  <span className="text-base sm:text-lg">📊</span>
                 </div>
-                <div className="font-display font-bold text-lg text-[var(--ink)] mb-1">HOD Platform</div>
-                <div className="text-[11px] text-[var(--slate)] leading-snug">
+                <div className="font-display font-bold text-base sm:text-lg text-[var(--ink)] mb-1 text-safe">HOD Platform</div>
+                <div className="text-[11px] text-[var(--slate)] leading-snug text-safe">
                   Monitor academic progress across all semesters, review faculty workloads, and approve requests.
                 </div>
               </div>
-              <div className="font-mono text-[10px] text-[var(--brass)] font-semibold flex items-center gap-1">
+              <div className="font-mono text-[10px] sm:text-[11px] text-[var(--brass)] font-semibold flex items-center gap-1 mt-3 pt-2 border-t border-[var(--rule)]/50 sm:border-t-0">
                 Enter HOD Platform →
               </div>
             </button>
@@ -180,19 +187,19 @@ export const LandingPage = () => {
             {/* Platform: Faculty */}
             <button
               onClick={() => openStaffLogin('faculty')}
-              className="role-card rounded-lg p-5 text-left flex flex-col justify-between h-44 cursor-pointer"
+              className="role-card rounded-lg p-4 sm:p-5 text-left flex flex-col justify-between min-h-[160px] sm:h-48 cursor-pointer w-full"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-[10px] font-bold text-[var(--brass-2)] tracking-wider">ASSIGNED COURSES ONLY</span>
-                  <span className="text-base">👨‍🏫</span>
+                  <span className="font-mono text-[9px] sm:text-[10px] font-bold text-[var(--brass-2)] tracking-wider">ASSIGNED COURSES ONLY</span>
+                  <span className="text-base sm:text-lg">👨‍🏫</span>
                 </div>
-                <div className="font-display font-bold text-lg text-[var(--ink)] mb-1">Faculty Platform</div>
-                <div className="text-[11px] text-[var(--slate)] leading-snug">
+                <div className="font-display font-bold text-base sm:text-lg text-[var(--ink)] mb-1 text-safe">Faculty Platform</div>
+                <div className="text-[11px] text-[var(--slate)] leading-snug text-safe">
                   Access assigned semester courses, record session attendance, and enter assessment marks.
                 </div>
               </div>
-              <div className="font-mono text-[10px] text-[var(--brass)] font-semibold flex items-center gap-1">
+              <div className="font-mono text-[10px] sm:text-[11px] text-[var(--brass)] font-semibold flex items-center gap-1 mt-3 pt-2 border-t border-[var(--rule)]/50 sm:border-t-0">
                 Enter Faculty Platform →
               </div>
             </button>
@@ -205,19 +212,19 @@ export const LandingPage = () => {
                 setStudentError('');
                 setStudentModalOpen(true);
               }}
-              className="role-card rounded-lg p-5 text-left flex flex-col justify-between h-44 cursor-pointer"
+              className="role-card rounded-lg p-4 sm:p-5 text-left flex flex-col justify-between min-h-[160px] sm:h-48 cursor-pointer w-full"
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-mono text-[10px] font-bold text-[var(--brass-2)] tracking-wider">PERSONAL ENROLMENT</span>
-                  <span className="text-base">🎓</span>
+                  <span className="font-mono text-[9px] sm:text-[10px] font-bold text-[var(--brass-2)] tracking-wider">PERSONAL ENROLMENT</span>
+                  <span className="text-base sm:text-lg">🎓</span>
                 </div>
-                <div className="font-display font-bold text-lg text-[var(--ink)] mb-1">Student Platform</div>
-                <div className="text-[11px] text-[var(--slate)] leading-snug">
+                <div className="font-display font-bold text-base sm:text-lg text-[var(--ink)] mb-1 text-safe">Student Platform</div>
+                <div className="text-[11px] text-[var(--slate)] leading-snug text-safe">
                   Verify registered name and semester to access enrolled courses, timetable, attendance, and marks.
                 </div>
               </div>
-              <div className="font-mono text-[10px] text-[var(--brass)] font-semibold flex items-center gap-1">
+              <div className="font-mono text-[10px] sm:text-[11px] text-[var(--brass)] font-semibold flex items-center gap-1 mt-3 pt-2 border-t border-[var(--rule)]/50 sm:border-t-0">
                 Verify Student Access →
               </div>
             </button>
@@ -269,17 +276,17 @@ export const LandingPage = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={() => setStaffModalOpen(false)}
-              className="btn-ghost border border-[var(--rule)] px-4 py-2 rounded text-xs font-mono"
+              className="btn-ghost border border-[var(--rule)] px-4 py-2.5 rounded text-xs font-mono w-full sm:w-auto min-h-[44px]"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-ink px-4 py-2 rounded text-xs font-mono font-bold"
+              className="btn-ink px-4 py-2.5 rounded text-xs font-mono font-bold w-full sm:w-auto min-h-[44px]"
             >
               Authorize &amp; Enter Platform →
             </button>
@@ -335,17 +342,17 @@ export const LandingPage = () => {
             </select>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={() => setStudentModalOpen(false)}
-              className="btn-ghost border border-[var(--rule)] px-4 py-2 rounded text-xs font-mono"
+              className="btn-ghost border border-[var(--rule)] px-4 py-2.5 rounded text-xs font-mono w-full sm:w-auto min-h-[44px]"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-brass px-4 py-2 rounded text-xs font-mono font-bold"
+              className="btn-brass px-4 py-2.5 rounded text-xs font-mono font-bold w-full sm:w-auto min-h-[44px]"
             >
               Verify &amp; Enter Portal →
             </button>

@@ -265,7 +265,7 @@ export const AcademicFileUploadModal = ({ isOpen, onClose, defaultRecordType = '
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-mono font-bold text-[var(--ink)] mb-1">
               Access &amp; Visibility:
@@ -273,25 +273,25 @@ export const AcademicFileUploadModal = ({ isOpen, onClose, defaultRecordType = '
             <select
               value={visibility}
               onChange={(e) => setVisibility(e.target.value)}
-              className="field-input text-xs"
+              className="field-input text-xs min-h-[40px]"
             >
               <option value="All">All Roles (Admin, Faculty, Students)</option>
               <option value="Faculty & Admin">Faculty &amp; Administrators Only</option>
               <option value="Admin Only">Confidential (Administrator &amp; HOD Only)</option>
             </select>
           </div>
-          <div className="flex items-end justify-end gap-2">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-end justify-end gap-2 pt-2 sm:pt-0">
             <button
               type="button"
               onClick={onClose}
-              className="btn-ghost border border-[var(--rule)] px-4 py-2 rounded text-xs font-mono"
+              className="btn-ghost border border-[var(--rule)] px-4 py-2 rounded text-xs font-mono min-h-[40px] w-full sm:w-auto"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isUploading}
-              className="btn-brass px-5 py-2 rounded text-xs font-mono font-bold shadow-xs flex items-center gap-1.5"
+              className="btn-brass px-5 py-2 rounded text-xs font-mono font-bold shadow-xs flex items-center justify-center gap-1.5 min-h-[40px] w-full sm:w-auto"
             >
               {isUploading ? 'Uploading...' : 'Confirm & Save Upload 📤'}
             </button>

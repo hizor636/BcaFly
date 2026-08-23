@@ -65,9 +65,9 @@ export const IngestionZone = ({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <span className="text-[11px] font-mono text-[var(--slate)] hidden sm:inline">Drag &amp; Drop or</span>
-          <button type="button" className="btn-brass px-3 py-1.5 rounded text-xs font-mono font-bold">
+          <button type="button" className="btn-brass px-3.5 py-2 rounded text-xs font-mono font-bold w-full sm:w-auto min-h-[40px]">
             Select Document 📂
           </button>
         </div>
