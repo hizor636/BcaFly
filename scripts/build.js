@@ -14,7 +14,7 @@ if (fs.existsSync(frontendDir) && fs.existsSync(path.join(frontendDir, 'package.
   // Ensure frontend dependencies are installed (required in CI/Vercel environments)
   if (!fs.existsSync(path.join(frontendDir, 'node_modules'))) {
     console.log('Installing frontend dependencies...');
-    execSync('npm install --ignore-scripts', { cwd: frontendDir, stdio: 'inherit' });
+    execSync('npm install', { cwd: frontendDir, stdio: 'inherit' });
   }
   console.log('Compiling modern React application in academic-management-system/frontend...');
   execSync('npm run build', { cwd: frontendDir, stdio: 'inherit' });
