@@ -8,6 +8,7 @@
   },
   "description": "BcaFly — BCA Department Academic Management System with Six Independent Semester Workspaces",
   "scripts": {
+    "postinstall": "npm --prefix academic-management-system/frontend install",
     "dev": "npm --prefix academic-management-system/frontend run dev",
     "build": "node scripts/build.js",
     "preview": "npm --prefix academic-management-system/frontend run preview"

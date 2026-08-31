@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "installCommand": "npm install && cd academic-management-system/frontend && npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "cleanUrls": true,
