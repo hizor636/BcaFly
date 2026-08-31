@@ -11,7 +11,8 @@ import apiClient from './apiClient';
 const get = (url, params) => apiClient.get(url, { params }).then(r => r.data);
 const post = (url, data) => apiClient.post(url, data).then(r => r.data);
 const put = (url, data) => apiClient.put(url, data).then(r => r.data);
-const del = (url) => apiClient.delete(url).then(r => r.data);
+const patch = (url, data) => apiClient.patch(url, data).then(r => r.data);
+const del = (url, params) => apiClient.delete(url, { params }).then(r => r.data);
 
 const upload = (url, formData) =>
   apiClient.post(url, formData, {
@@ -157,12 +158,18 @@ export const adminApi = {
   createWorkspace: (data) => post('/admin/workspaces', data),
   updateWorkspaceStatus: (id, status) => put(`/admin/workspaces/${id}/status`, { status }),
 
-  // Students
+  // Students & Enrolments
   getStudents: (params) => get('/admin/students', params),
+  getStudentEnrolments: (semesterId, academicYearId, section) => get('/admin/students/enrolments', { semesterId, academicYearId, section }),
   createStudent: (data) => post('/admin/students', data),
+  enrolStudent: (data) => post('/admin/students/enrolments', data),
   updateStudent: (id, data) => put(`/admin/students/${id}`, data),
-  getImportTemplate: () => apiClient.get('/admin/students/import-template', { responseType: 'blob' }),
+  updateStudentEnrolment: (enrolmentId, data) => patch(`/admin/students/enrolments/${enrolmentId}`, data),
+  deleteStudentEnrolment: (enrolmentId, semesterId, academicYearId) => del(`/admin/students/enrolments/${enrolmentId}`, { semesterId, academicYearId }),
+  getImportTemplate: (semesterId) => apiClient.get('/admin/students/template', { params: { semesterId }, responseType: 'blob' }),
   importStudents: (formData) => upload('/admin/students/import', formData),
+  previewImportStudents: (formData) => upload('/admin/students/import/preview', formData),
+  confirmImportStudents: (data) => post('/admin/students/import/confirm', data),
   confirmImport: (jobId) => post(`/admin/students/import/${jobId}/confirm`),
   getImportJobs: () => get('/admin/import-jobs'),
   getImportErrors: (jobId) => get(`/admin/import-jobs/${jobId}/errors`),

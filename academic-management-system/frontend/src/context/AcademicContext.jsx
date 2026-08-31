@@ -138,6 +138,97 @@ export const AcademicProvider = ({ children }) => {
     logAction('Student Enrolled', `Enrolled ${student.name} (${student.reg || 'New'}) into Semester ${sem}.`);
   };
 
+  const updateStudent = (semId, studentId, updates) => {
+    const sem = semId || activeSemester;
+    setSemesters(prev => {
+      const current = prev[sem];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [sem]: {
+          ...current,
+          students: current.students.map(s => {
+            if (s.id === studentId || s.reg === studentId || s.usn === studentId) {
+              return { ...s, ...updates };
+            }
+            return s;
+          })
+        }
+      };
+    });
+    logAction('Student Updated', `Updated student details in Semester ${sem}.`);
+  };
+
+  const deleteStudent = (semId, studentId) => {
+    const sem = semId || activeSemester;
+    setSemesters(prev => {
+      const current = prev[sem];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [sem]: {
+          ...current,
+          students: current.students.filter(s => s.id !== studentId && s.reg !== studentId && s.usn !== studentId)
+        }
+      };
+    });
+    logAction('Student Dropped', `Removed enrolment for student in Semester ${sem}.`);
+  };
+
+  const importStudents = (semId, studentList, options = {}) => {
+    const sem = semId || activeSemester;
+    const { mode = 'merge' } = options;
+
+    setSemesters(prev => {
+      const current = prev[sem] || { students: [], courses: [] };
+      let updatedStudents = mode === 'replace-semester' ? [] : [...current.students];
+
+      studentList.forEach(raw => {
+        const usn = (raw.usn || raw.reg || '').trim().toUpperCase();
+        const name = raw.name || raw.fullName || 'Unknown Student';
+        const section = raw.section || 'A';
+        const batch = raw.batch || current.batch || '2024–27';
+        const attendance = Number(raw.attendance || raw.attendancePercentage) || 90;
+        const sgpa = Number(raw.sgpa || raw.currentSgpa) || 8.5;
+        const standing = raw.standing || raw.resultStatus || 'PASS';
+
+        const existingIdx = updatedStudents.findIndex(s => (s.reg || s.usn || '').toUpperCase() === usn);
+
+        const newStudentEntry = {
+          id: raw.id || `stu-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          reg: usn,
+          usn,
+          name,
+          section,
+          batch,
+          attendance,
+          sgpa,
+          cgpa: sgpa,
+          status: 'Active',
+          resultStatus: standing
+        };
+
+        if (existingIdx >= 0) {
+          if (mode === 'merge') {
+            updatedStudents[existingIdx] = { ...updatedStudents[existingIdx], ...newStudentEntry };
+          }
+        } else {
+          updatedStudents.push(newStudentEntry);
+        }
+      });
+
+      return {
+        ...prev,
+        [sem]: {
+          ...current,
+          students: updatedStudents
+        }
+      };
+    });
+
+    logAction('Bulk Student Import Completed', `Imported ${studentList.length} students into Semester ${sem} (Mode: ${mode}).`);
+  };
+
   const addCourse = (semId, course) => {
     const sem = semId || activeSemester;
     const courseCode = (course.code || '').trim().toUpperCase();
@@ -1258,6 +1349,9 @@ export const AcademicProvider = ({ children }) => {
         facultyAllocations,
         backlogRecords,
         addStudent,
+        updateStudent,
+        deleteStudent,
+        importStudents,
         addCourse,
         updateCourse,
         deleteCourse,

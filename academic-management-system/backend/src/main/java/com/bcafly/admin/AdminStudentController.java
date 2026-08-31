@@ -1,85 +1,90 @@
 package com.bcafly.admin;
 
 import com.bcafly.common.AuditService;
-import com.bcafly.common.ScopeValidator;
-import com.bcafly.students.StudentProfile;
-import com.bcafly.students.StudentProfileRepository;
-import com.bcafly.users.User;
-import com.bcafly.users.UserRepository;
+import com.bcafly.students.Student;
+import com.bcafly.students.StudentEnrolment;
+import com.bcafly.students.StudentEnrolmentRepository;
+import com.bcafly.students.StudentRepository;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-/**
- * Admin Student Management Controller.
- *
- * Handles student profile CRUD and CSV import with validation,
- * preview, error reporting, and audit logging.
- */
 @RestController
 @RequestMapping("/api/admin/students")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminStudentController {
 
-    private final UserRepository userRepository;
-    private final StudentProfileRepository studentProfileRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final StudentRepository studentRepository;
+    private final StudentEnrolmentRepository studentEnrolmentRepository;
     private final AuditService auditService;
-    private final ScopeValidator scopeValidator;
 
-    public AdminStudentController(UserRepository userRepository,
-                                  StudentProfileRepository studentProfileRepository,
-                                  PasswordEncoder passwordEncoder,
-                                  AuditService auditService,
-                                  ScopeValidator scopeValidator) {
-        this.userRepository = userRepository;
-        this.studentProfileRepository = studentProfileRepository;
-        this.passwordEncoder = passwordEncoder;
+    // Cache for storing preview rows before confirmation
+    private final Map<String, List<Map<String, Object>>> importCache = new ConcurrentHashMap<>();
+    private final Map<String, String> fileNameCache = new ConcurrentHashMap<>();
+
+    public AdminStudentController(StudentRepository studentRepository,
+                                  StudentEnrolmentRepository studentEnrolmentRepository,
+                                  AuditService auditService) {
+        this.studentRepository = studentRepository;
+        this.studentEnrolmentRepository = studentEnrolmentRepository;
         this.auditService = auditService;
-        this.scopeValidator = scopeValidator;
     }
 
     /**
-     * GET /api/admin/students
-     * List all students, optionally filtered by workspace, section, semester.
+     * GET /api/admin/students/enrolments?semesterId=6&academicYearId=2024-25-even
      */
-    @GetMapping
-    public ResponseEntity<?> listStudents(
-            @RequestParam(required = false) Long workspaceId,
-            @RequestParam(required = false) Long sectionId,
-            @RequestParam(required = false) Integer semester) {
+    @GetMapping("/enrolments")
+    public ResponseEntity<?> listEnrolments(
+            @RequestParam("semesterId") Integer semesterId,
+            @RequestParam("academicYearId") String academicYearId,
+            @RequestParam(value = "section", required = false) String section) {
 
-        List<StudentProfile> students;
-        if (sectionId != null) {
-            students = studentProfileRepository.findBySectionId(sectionId);
-        } else if (semester != null) {
-            students = studentProfileRepository.findByCurrentSemesterId(Long.valueOf(semester));
-        } else {
-            students = studentProfileRepository.findAll();
+        if (semesterId == null || semesterId < 1 || semesterId > 6) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "A valid semester between 1 and 6 is required."));
         }
 
-        List<Map<String, Object>> result = students.stream().map(s -> {
-            User user = s.getUser();
+        List<StudentEnrolment> enrolments;
+        if (section != null && !section.equalsIgnoreCase("ALL") && !section.equalsIgnoreCase("All Sections")) {
+            enrolments = studentEnrolmentRepository.findBySemesterIdAndAcademicYearIdAndSectionAndEnrolmentStatus(
+                    semesterId, academicYearId, section.toUpperCase(), "ACTIVE");
+        } else {
+            enrolments = studentEnrolmentRepository.findBySemesterIdAndAcademicYearIdAndEnrolmentStatus(
+                    semesterId, academicYearId, "ACTIVE");
+        }
+
+        List<Map<String, Object>> result = enrolments.stream().map(e -> {
             Map<String, Object> map = new LinkedHashMap<>();
-            map.put("id", s.getId());
-            map.put("userId", user != null ? user.getId() : null);
-            map.put("registerNumber", s.getRegNo());
-            map.put("rollNumber", s.getRollNo());
-            map.put("fullName", user != null ? user.getName() : "Unknown");
-            map.put("email", user != null ? user.getEmail() : null);
-            map.put("semesterId", s.getCurrentSemesterId());
-            map.put("sectionId", s.getSectionId());
-            map.put("cgpa", s.getCgpa());
-            map.put("attendancePct", s.getAttendancePct());
-            map.put("riskStatus", s.getRiskStatus());
+            map.put("id", e.getId());
+            map.put("studentId", e.getStudent() != null ? e.getStudent().getId() : null);
+            map.put("usn", e.getUsn());
+            map.put("reg", e.getUsn());
+            map.put("name", e.getStudent() != null ? e.getStudent().getFullName() : "Unknown");
+            map.put("email", e.getStudent() != null ? e.getStudent().getEmail() : null);
+            map.put("phone", e.getStudent() != null ? e.getStudent().getPhone() : null);
+            map.put("semesterId", e.getSemesterId());
+            map.put("academicYearId", e.getAcademicYearId());
+            map.put("section", e.getSection());
+            map.put("batch", e.getBatch());
+            map.put("rollNumber", e.getRollNumber());
+            map.put("enrolmentStatus", e.getEnrolmentStatus());
+            map.put("attendance", e.getAttendancePercentage());
+            map.put("attendancePercentage", e.getAttendancePercentage());
+            map.put("sgpa", e.getCurrentSgpa());
+            map.put("currentSgpa", e.getCurrentSgpa());
+            map.put("standing", e.getStanding());
+            map.put("resultStatus", e.getStanding());
             return map;
         }).collect(Collectors.toList());
 
@@ -87,224 +92,545 @@ public class AdminStudentController {
     }
 
     /**
-     * POST /api/admin/students
-     * Create a single student profile with a user account.
+     * POST /api/admin/students/enrolments
      */
-    @PostMapping
-    public ResponseEntity<?> createStudent(@RequestBody CreateStudentRequest request) {
-        // Validate uniqueness
-        if (userRepository.existsByEmail(request.email())) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Email already exists: " + request.email()));
+    @PostMapping("/enrolments")
+    @Transactional
+    public ResponseEntity<?> addEnrolment(@RequestBody Map<String, Object> payload) {
+        Integer semesterId = payload.get("semesterId") != null ? Integer.parseInt(payload.get("semesterId").toString()) : null;
+        String academicYearId = (String) payload.get("academicYearId");
+
+        if (semesterId == null || semesterId < 1 || semesterId > 6) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "A valid semester is required for student enrolment."));
         }
-        if (studentProfileRepository.existsByRegNo(request.registerNumber())) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Register number already exists: " + request.registerNumber()));
+        if (academicYearId == null || academicYearId.isBlank()) {
+            academicYearId = "2024-25-even";
         }
 
-        // Create user account
-        User user = User.builder()
-                .name(request.fullName())
-                .email(request.email())
-                .passwordHash(passwordEncoder.encode("Student@123"))
-                .role(User.Role.STUDENT)
-                .department("BCA")
-                .isActive(true)
-                .build();
-        userRepository.save(user);
+        String usn = (String) (payload.get("usn") != null ? payload.get("usn") : payload.get("reg"));
+        String name = (String) (payload.get("name") != null ? payload.get("name") : payload.get("fullName"));
+        String section = payload.get("section") != null ? payload.get("section").toString().toUpperCase() : "A";
+        String batch = payload.get("batch") != null ? payload.get("batch").toString() : "2024–27";
+        String email = (String) payload.get("email");
+        String phone = (String) payload.get("phone");
 
-        // Create student profile
-        StudentProfile profile = new StudentProfile();
-        profile.setUser(user);
-        profile.setRegNo(request.registerNumber());
-        profile.setRollNo(request.rollNumber());
-        studentProfileRepository.save(profile);
+        if (name == null || name.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Student name is required."));
+        }
 
-        auditService.log("STUDENT_CREATED", "StudentProfile", profile.getId(),
-                "Created student " + request.fullName() + " (" + request.registerNumber() + ")");
+        if (usn == null || usn.isBlank()) {
+            usn = "1BC24" + String.format("%03d", (int) (Math.random() * 900) + 100);
+        } else {
+            usn = usn.trim().toUpperCase();
+        }
+
+        // Check if enrolment already exists in this semester workspace
+        if (studentEnrolmentRepository.existsBySemesterIdAndAcademicYearIdAndUsn(semesterId, academicYearId, usn)) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Student with USN " + usn + " is already enrolled in Semester " + semesterId));
+        }
+
+        // Create or find master Student identity
+        String finalUsn = usn;
+        Student student = studentRepository.findByUsn(finalUsn).orElseGet(() -> {
+            Student s = new Student();
+            s.setId("STU-" + UUID.randomUUID().toString());
+            s.setUsn(finalUsn);
+            s.setFullName(name.trim());
+            s.setEmail(email);
+            s.setPhone(phone);
+            return studentRepository.save(s);
+        });
+
+        // Create Enrolment
+        StudentEnrolment enrolment = new StudentEnrolment();
+        enrolment.setId("ENR-" + UUID.randomUUID().toString());
+        enrolment.setStudent(student);
+        enrolment.setUsn(usn);
+        enrolment.setSemesterId(semesterId);
+        enrolment.setAcademicYearId(academicYearId);
+        enrolment.setSection(section);
+        enrolment.setBatch(batch);
+        enrolment.setEnrolmentStatus("ACTIVE");
+        enrolment.setAttendancePercentage(payload.get("attendance") != null ? new BigDecimal(payload.get("attendance").toString()) : BigDecimal.valueOf(90.0));
+        enrolment.setCurrentSgpa(payload.get("sgpa") != null ? new BigDecimal(payload.get("sgpa").toString()) : BigDecimal.valueOf(8.5));
+        enrolment.setStanding(payload.get("standing") != null ? payload.get("standing").toString() : "PASS");
+
+        StudentEnrolment saved = studentEnrolmentRepository.save(enrolment);
+
+        auditService.log("STUDENT_ADDED", "StudentEnrolment", null,
+                String.format("Enrolled student %s (%s) into Semester %d (%s)", name, usn, semesterId, academicYearId));
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "Student enrolled successfully.", "data", saved));
+    }
+
+    /**
+     * PATCH /api/admin/students/enrolments/{enrolmentId}
+     */
+    @PatchMapping("/enrolments/{enrolmentId}")
+    @Transactional
+    public ResponseEntity<?> updateEnrolment(
+            @PathVariable String enrolmentId,
+            @RequestBody Map<String, Object> payload) {
+
+        Integer semesterId = payload.get("semesterId") != null ? Integer.parseInt(payload.get("semesterId").toString()) : null;
+        String academicYearId = (String) payload.get("academicYearId");
+
+        Optional<StudentEnrolment> enrolmentOpt;
+        if (semesterId != null && academicYearId != null) {
+            enrolmentOpt = studentEnrolmentRepository.findByIdAndSemesterIdAndAcademicYearId(enrolmentId, semesterId, academicYearId);
+        } else {
+            enrolmentOpt = studentEnrolmentRepository.findById(enrolmentId);
+        }
+
+        if (enrolmentOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "Student enrolment was not found in the selected semester."
+            ));
+        }
+
+        StudentEnrolment enrolment = enrolmentOpt.get();
+
+        if (payload.containsKey("section") && payload.get("section") != null) {
+            enrolment.setSection(payload.get("section").toString().toUpperCase());
+        }
+        if (payload.containsKey("batch") && payload.get("batch") != null) {
+            enrolment.setBatch(payload.get("batch").toString());
+        }
+        if (payload.containsKey("rollNumber") && payload.get("rollNumber") != null) {
+            enrolment.setRollNumber(Integer.parseInt(payload.get("rollNumber").toString()));
+        }
+        if (payload.containsKey("attendance") || payload.containsKey("attendancePercentage")) {
+            Object att = payload.getOrDefault("attendancePercentage", payload.get("attendance"));
+            if (att != null) enrolment.setAttendancePercentage(new BigDecimal(att.toString()));
+        }
+        if (payload.containsKey("sgpa") || payload.containsKey("currentSgpa")) {
+            Object sgpa = payload.getOrDefault("currentSgpa", payload.get("sgpa"));
+            if (sgpa != null) enrolment.setCurrentSgpa(new BigDecimal(sgpa.toString()));
+        }
+        if (payload.containsKey("standing") && payload.get("standing") != null) {
+            enrolment.setStanding(payload.get("standing").toString());
+        }
+        if (payload.containsKey("enrolmentStatus") && payload.get("enrolmentStatus") != null) {
+            enrolment.setEnrolmentStatus(payload.get("enrolmentStatus").toString().toUpperCase());
+        }
+
+        StudentEnrolment updated = studentEnrolmentRepository.save(enrolment);
+
+        auditService.log("STUDENT_UPDATED", "StudentEnrolment", null,
+                "Updated enrolment " + enrolmentId + " for student " + enrolment.getUsn() + " in semester " + enrolment.getSemesterId());
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "Enrolment updated successfully.", "data", updated));
+    }
+
+    /**
+     * DELETE /api/admin/students/enrolments/{enrolmentId}
+     */
+    @DeleteMapping("/enrolments/{enrolmentId}")
+    @Transactional
+    public ResponseEntity<?> deleteEnrolment(
+            @PathVariable String enrolmentId,
+            @RequestParam(value = "semesterId", required = false) Integer semesterId,
+            @RequestParam(value = "academicYearId", required = false) String academicYearId) {
+
+        Optional<StudentEnrolment> enrolmentOpt;
+        if (semesterId != null && academicYearId != null) {
+            enrolmentOpt = studentEnrolmentRepository.findByIdAndSemesterIdAndAcademicYearId(enrolmentId, semesterId, academicYearId);
+        } else {
+            enrolmentOpt = studentEnrolmentRepository.findById(enrolmentId);
+        }
+
+        if (enrolmentOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "Student enrolment was not found in the selected semester."
+            ));
+        }
+
+        StudentEnrolment enrolment = enrolmentOpt.get();
+        enrolment.setEnrolmentStatus("DROPPED");
+        studentEnrolmentRepository.save(enrolment);
+
+        auditService.log("STUDENT_REMOVED", "StudentEnrolment", null,
+                "Deactivated enrolment " + enrolmentId + " (" + enrolment.getUsn() + ") from semester " + enrolment.getSemesterId());
 
         return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Student " + request.fullName() + " enrolled successfully.",
-                "studentId", profile.getId(),
-                "userId", user.getId(),
-                "temporaryPassword", "Student@123"
+                "message", "Student enrolment dropped from Semester " + enrolment.getSemesterId()
         ));
     }
 
     /**
-     * POST /api/admin/students/import
-     * Upload CSV file, validate, and return a preview with errors.
-     * Does NOT commit to database — use /import/{jobId}/confirm for that.
+     * POST /api/admin/students/import/preview
      */
-    @PostMapping("/import")
-    public ResponseEntity<?> importStudentsPreview(@RequestParam("file") MultipartFile file,
-                                                   @RequestParam(value = "workspaceId", required = false) Long workspaceId) {
+    @PostMapping(value = "/import/preview", consumes = "multipart/form-data")
+    public ResponseEntity<?> importPreview(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("semesterId") Integer semesterId,
+            @RequestParam("academicYearId") String academicYearId) {
+
+        if (semesterId == null || semesterId < 1 || semesterId > 6) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "A valid semester between 1 and 6 is required."));
+        }
+
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "No file uploaded."));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Please select a CSV, XLS, or XLSX document."));
         }
 
-        String fileName = file.getOriginalFilename();
-        if (fileName == null || (!fileName.endsWith(".csv") && !fileName.endsWith(".CSV"))) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Only CSV files are supported. Received: " + fileName));
+        String originalName = file.getOriginalFilename();
+        if (originalName == null || (!originalName.endsWith(".csv") && !originalName.endsWith(".xlsx") && !originalName.endsWith(".xls"))) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Please select a CSV, XLS, or XLSX document."));
         }
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
-            String headerLine = reader.readLine();
-            if (headerLine == null || headerLine.isBlank()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "CSV file is empty or missing header row."));
+        try {
+            List<Map<String, String>> rawRows = parseFile(file);
+            if (rawRows.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "The document must not be empty."));
             }
 
-            String[] headers = headerLine.split(",");
-            Map<String, Integer> columnMap = new LinkedHashMap<>();
-            for (int i = 0; i < headers.length; i++) {
-                columnMap.put(headers[i].trim().toLowerCase(), i);
-            }
+            Set<String> headers = rawRows.get(0).keySet();
+            String usnHeader = matchHeader(headers, "USN / Register Number", "Register Number", "Reg No", "USN", "Reg. No / USN", "RegNo");
+            String nameHeader = matchHeader(headers, "Student Name", "FullName", "Name", "Full Name");
+            String sectionHeader = matchHeader(headers, "Section", "Sec");
+            String batchHeader = matchHeader(headers, "Batch");
+            String emailHeader = matchHeader(headers, "Email", "Email Address");
+            String phoneHeader = matchHeader(headers, "Phone", "Mobile", "Contact");
+            String attHeader = matchHeader(headers, "Attendance Percentage", "Attendance %", "Attendance", "Att");
+            String sgpaHeader = matchHeader(headers, "Current SGPA", "SGPA", "CGPA");
+            String standingHeader = matchHeader(headers, "Standing", "Result Status", "Status");
 
-            // Required columns validation
-            List<String> requiredColumns = List.of("registernumber", "fullname", "email");
-            List<String> missingColumns = requiredColumns.stream()
-                    .filter(c -> !columnMap.containsKey(c))
-                    .collect(Collectors.toList());
-
-            if (!missingColumns.isEmpty()) {
+            if (usnHeader == null || nameHeader == null) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "success", false,
-                        "message", "Missing required columns: " + String.join(", ", missingColumns),
-                        "detectedColumns", columnMap.keySet()
+                        "message", "Missing required columns: USN/Register Number and Student Name are mandatory."
                 ));
             }
 
-            // Parse and validate rows
-            List<Map<String, Object>> validRows = new ArrayList<>();
-            List<Map<String, Object>> errors = new ArrayList<>();
-            Set<String> seenRegNos = new HashSet<>();
-            Set<String> seenEmails = new HashSet<>();
-            int rowNumber = 1;
-            String line;
+            List<Map<String, Object>> previewRows = new ArrayList<>();
+            List<Map<String, Object>> validRowsForImport = new ArrayList<>();
+            Set<String> seenUsns = new HashSet<>();
 
-            while ((line = reader.readLine()) != null) {
-                rowNumber++;
-                if (line.isBlank()) continue;
+            int totalRows = 0;
+            int readyCount = 0;
+            int warningCount = 0;
+            int errorCount = 0;
+            int newCount = 0;
+            int updateCount = 0;
 
-                String[] cols = line.split(",", -1);
-                String regNo = getColumn(cols, columnMap, "registernumber");
-                String fullName = getColumn(cols, columnMap, "fullname");
-                String email = getColumn(cols, columnMap, "email");
-                String phone = getColumn(cols, columnMap, "phone");
-                String section = getColumn(cols, columnMap, "section");
-                String batch = getColumn(cols, columnMap, "batch");
-                String semester = getColumn(cols, columnMap, "semester");
+            for (int i = 0; i < rawRows.size(); i++) {
+                totalRows++;
+                Map<String, String> row = rawRows[i];
+                String rawUsn = row.get(usnHeader);
+                String rawName = row.get(nameHeader);
+                String rawSection = sectionHeader != null ? row.get(sectionHeader) : "A";
+                String rawBatch = batchHeader != null ? row.get(batchHeader) : "2024–27";
+                String rawEmail = emailHeader != null ? row.get(emailHeader) : null;
+                String rawPhone = phoneHeader != null ? row.get(phoneHeader) : null;
+                String rawAtt = attHeader != null ? row.get(attHeader) : "90";
+                String rawSgpa = sgpaHeader != null ? row.get(sgpaHeader) : "8.5";
+                String rawStanding = standingHeader != null ? row.get(standingHeader) : "PASS";
 
-                List<String> rowErrors = new ArrayList<>();
+                List<String> errors = new ArrayList<>();
+                List<String> warnings = new ArrayList<>();
+                String status = "ready";
 
-                // Validate required fields
-                if (regNo == null || regNo.isBlank()) rowErrors.add("Register number is required.");
-                if (fullName == null || fullName.isBlank()) rowErrors.add("Full name is required.");
-                if (email == null || email.isBlank()) rowErrors.add("Email is required.");
+                if (rawUsn == null || rawUsn.isBlank()) errors.add("USN/Register Number is required.");
+                if (rawName == null || rawName.isBlank()) errors.add("Student Name is required.");
 
-                // Validate uniqueness within file
-                if (regNo != null && !regNo.isBlank()) {
-                    if (seenRegNos.contains(regNo.toLowerCase())) {
-                        rowErrors.add("Duplicate register number in file: " + regNo);
+                String upperUsn = rawUsn != null ? rawUsn.trim().toUpperCase() : "";
+                if (!upperUsn.isEmpty()) {
+                    if (seenUsns.contains(upperUsn)) {
+                        errors.add("Duplicate USN in uploaded file: " + upperUsn);
                     } else {
-                        seenRegNos.add(regNo.toLowerCase());
+                        seenUsns.add(upperUsn);
                     }
-                    // Check against database
-                    if (studentProfileRepository.existsByRegNo(regNo)) {
-                        rowErrors.add("Register number already exists in database: " + regNo);
+
+                    // Check duplicate in database for this active semester workspace
+                    boolean exists = studentEnrolmentRepository.existsBySemesterIdAndAcademicYearIdAndUsn(semesterId, academicYearId, upperUsn);
+                    if (exists) {
+                        warnings.add("Student already enrolled in Semester (" + upperUsn + "). Existing record will be updated.");
+                        updateCount++;
+                    } else {
+                        newCount++;
                     }
                 }
 
-                if (email != null && !email.isBlank()) {
-                    if (seenEmails.contains(email.toLowerCase())) {
-                        rowErrors.add("Duplicate email in file: " + email);
+                String cleanSec = "A";
+                if (rawSection != null && !rawSection.isBlank()) {
+                    String norm = rawSection.trim().toUpperCase().replace("SECTION", "").replace("SEC", "").trim();
+                    if (norm.equals("A") || norm.equals("B") || norm.equals("C")) {
+                        cleanSec = norm;
                     } else {
-                        seenEmails.add(email.toLowerCase());
-                    }
-                    if (userRepository.existsByEmail(email)) {
-                        rowErrors.add("Email already exists in database: " + email);
+                        warnings.add("Unrecognized section \"" + rawSection + "\". Defaulted to Section A.");
                     }
                 }
 
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("rowNumber", rowNumber);
-                row.put("registerNumber", regNo);
-                row.put("fullName", fullName);
-                row.put("email", email);
-                row.put("phone", phone);
-                row.put("section", section);
-                row.put("batch", batch);
-                row.put("semester", semester);
+                Map<String, Object> previewRow = new LinkedHashMap<>();
+                previewRow.put("rowIndex", i + 1);
+                previewRow.put("usn", upperUsn);
+                previewRow.put("reg", upperUsn);
+                previewRow.put("name", rawName != null ? rawName.trim() : "");
+                previewRow.put("section", cleanSec);
+                previewRow.put("batch", rawBatch != null ? rawBatch.trim() : "2024–27");
+                previewRow.put("email", rawEmail != null ? rawEmail.trim() : "");
+                previewRow.put("phone", rawPhone != null ? rawPhone.trim() : "");
+                previewRow.put("attendance", rawAtt != null ? rawAtt.trim() : "90");
+                previewRow.put("sgpa", rawSgpa != null ? rawSgpa.trim() : "8.5");
+                previewRow.put("standing", rawStanding != null ? rawStanding.trim() : "PASS");
 
-                if (!rowErrors.isEmpty()) {
-                    row.put("errors", rowErrors);
-                    errors.add(row);
+                if (!errors.isEmpty()) {
+                    previewRow.put("errors", errors);
+                    previewRow.put("status", "error");
+                    errorCount++;
+                } else if (!warnings.isEmpty()) {
+                    previewRow.put("warnings", warnings);
+                    previewRow.put("status", "warning");
+                    warningCount++;
+                    readyCount++;
+                    validRowsForImport.add(previewRow);
                 } else {
-                    validRows.add(row);
+                    previewRow.put("status", "ready");
+                    readyCount++;
+                    validRowsForImport.add(previewRow);
                 }
+
+                previewRows.add(previewRow);
             }
 
-            // Generate import job ID for confirmation step
-            String importJobId = "IMP-" + System.currentTimeMillis();
+            String uploadId = "STU-UP-" + UUID.randomUUID().toString();
+            importCache.put(uploadId, validRowsForImport);
+            fileNameCache.put(uploadId, originalName);
+
+            Map<String, Object> stats = new LinkedHashMap<>();
+            stats.put("totalRows", totalRows);
+            stats.put("validCount", readyCount);
+            stats.put("warningCount", warningCount);
+            stats.put("errorCount", errorCount);
+            stats.put("newCount", newCount);
+            stats.put("updateCount", updateCount);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "importJobId", importJobId,
-                    "fileName", fileName,
-                    "totalRows", validRows.size() + errors.size(),
-                    "validRows", validRows.size(),
-                    "errorRows", errors.size(),
-                    "preview", validRows.stream().limit(20).collect(Collectors.toList()),
-                    "errors", errors,
-                    "status", errors.isEmpty() ? "READY_FOR_IMPORT" : "VALIDATION_FAILED",
-                    "message", errors.isEmpty()
-                            ? validRows.size() + " students ready for import."
-                            : errors.size() + " rows have validation errors. Fix and re-upload."
+                    "uploadId", uploadId,
+                    "semesterId", semesterId,
+                    "academicYearId", academicYearId,
+                    "stats", stats,
+                    "rows", previewRows
             ));
 
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
-                    "success", false,
-                    "message", "Failed to process CSV: " + e.getMessage()
-            ));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Failed to parse spreadsheet: " + e.getMessage()));
         }
     }
 
     /**
-     * GET /api/admin/students/import-template
-     * Returns a CSV template for student bulk upload.
+     * POST /api/admin/students/import/confirm
      */
-    @GetMapping("/import-template")
-    public ResponseEntity<String> getImportTemplate() {
-        String template = "registerNumber,admissionNumber,fullName,email,phone,department,program,academicYear,semester,section,batch,status\n"
-                + "BCA26001,ADM2026001,Rahul Kumar,rahul@example.com,9876543210,BCA,BCA,2026-27,3,A,Batch-1,ACTIVE\n";
+    @PostMapping("/import/confirm")
+    @Transactional
+    public ResponseEntity<?> importConfirm(@RequestBody Map<String, Object> payload) {
+        String uploadId = (String) payload.get("uploadId");
+        Integer semesterId = (Integer) payload.get("semesterId");
+        String academicYearId = (String) payload.get("academicYearId");
+        String mode = (String) payload.get("mode"); // "merge" | "add-only" | "replace-semester"
+
+        if (semesterId == null || semesterId < 1 || semesterId > 6) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "A valid semester between 1 and 6 is required."));
+        }
+
+        if (uploadId == null || !importCache.containsKey(uploadId)) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Invalid or expired import session."));
+        }
+
+        List<Map<String, Object>> validRows = importCache.remove(uploadId);
+        String originalFileName = fileNameCache.remove(uploadId);
+
+        if (validRows == null || validRows.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "No valid records to import."));
+        }
+
+        if ("replace-semester".equalsIgnoreCase(mode)) {
+            studentEnrolmentRepository.deleteBySemesterIdAndAcademicYearId(semesterId, academicYearId);
+        }
+
+        int importedCount = 0;
+        for (Map<String, Object> r : validRows) {
+            String usn = (String) r.get("usn");
+            String name = (String) r.get("name");
+            String section = (String) r.get("section");
+            String batch = (String) r.get("batch");
+            String email = (String) r.get("email");
+            String phone = (String) r.get("phone");
+
+            Optional<StudentEnrolment> existing = studentEnrolmentRepository.findBySemesterIdAndAcademicYearIdAndUsn(
+                    semesterId, academicYearId, usn);
+
+            if ("add-only".equalsIgnoreCase(mode) && existing.isPresent()) {
+                continue; // Skip existing in add-only mode
+            }
+
+            // Create or update master student
+            Student student = studentRepository.findByUsn(usn).orElseGet(() -> {
+                Student s = new Student();
+                s.setId("STU-" + UUID.randomUUID().toString());
+                s.setUsn(usn);
+                s.setFullName(name);
+                s.setEmail(email);
+                s.setPhone(phone);
+                return studentRepository.save(s);
+            });
+
+            StudentEnrolment enrolment;
+            if (existing.isPresent()) {
+                enrolment = existing.get();
+                enrolment.setSection(section);
+                enrolment.setBatch(batch);
+                enrolment.setEnrolmentStatus("ACTIVE");
+            } else {
+                enrolment = new StudentEnrolment();
+                enrolment.setId("ENR-" + UUID.randomUUID().toString());
+                enrolment.setStudent(student);
+                enrolment.setUsn(usn);
+                enrolment.setSemesterId(semesterId);
+                enrolment.setAcademicYearId(academicYearId);
+                enrolment.setSection(section);
+                enrolment.setBatch(batch);
+                enrolment.setEnrolmentStatus("ACTIVE");
+                enrolment.setAttendancePercentage(new BigDecimal(r.getOrDefault("attendance", "90").toString()));
+                enrolment.setCurrentSgpa(new BigDecimal(r.getOrDefault("sgpa", "8.5").toString()));
+                enrolment.setStanding((String) r.getOrDefault("standing", "PASS"));
+            }
+
+            studentEnrolmentRepository.save(enrolment);
+            importedCount++;
+        }
+
+        auditService.log("STUDENT_DOCUMENT_IMPORTED", "StudentEnrolment", null,
+                String.format("Imported %d students into Semester %d (%s) from file %s (mode: %s)",
+                        importedCount, semesterId, academicYearId, originalFileName, mode));
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Successfully imported " + importedCount + " students into Semester " + semesterId + "."
+        ));
+    }
+
+    /**
+     * GET /api/admin/students/template
+     */
+    @GetMapping({"/template", "/import-template"})
+    public ResponseEntity<String> getTemplate(@RequestParam(value = "semesterId", required = false) Integer semesterId) {
+        int sem = semesterId != null ? semesterId : 6;
+        String csv = "USN / Register Number,Student Name,Section,Batch,Email,Phone,Attendance Percentage,Current SGPA,Standing\n"
+                + "1BC24001,Aakash Sharma,A,2024–27,aakash@example.com,9876543210,92.5,8.8,PASS\n"
+                + "1BC24002,Bhavana Reddy,A,2024–27,bhavana@example.com,9876543211,88.0,8.4,PASS\n"
+                + "1BC24003,Chetan Kumar,B,2024–27,chetan@example.com,9876543212,79.5,7.9,PASS\n";
 
         return ResponseEntity.ok()
                 .header("Content-Type", "text/csv")
-                .header("Content-Disposition", "attachment; filename=bcafly_student_import_template.csv")
-                .body(template);
+                .header("Content-Disposition", "attachment; filename=semester_" + sem + "_student_template.csv")
+                .body(csv);
     }
 
-    private String getColumn(String[] cols, Map<String, Integer> columnMap, String key) {
-        Integer idx = columnMap.get(key);
-        if (idx == null || idx >= cols.length) return null;
-        String val = cols[idx].trim();
-        // Remove surrounding quotes
-        if (val.startsWith("\"") && val.endsWith("\"")) {
-            val = val.substring(1, val.length() - 1);
+    private List<Map<String, String>> parseFile(MultipartFile file) throws Exception {
+        List<Map<String, String>> rows = new ArrayList<>();
+        String originalName = file.getOriginalFilename();
+
+        if (originalName != null && (originalName.endsWith(".xlsx") || originalName.endsWith(".xls"))) {
+            try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+                Sheet sheet = workbook.getSheetAt(0);
+                Row headerRow = null;
+
+                for (int r = 0; r <= sheet.getLastRowNum(); r++) {
+                    Row row = sheet.getRow(r);
+                    if (row != null && getNonEmptyCellCount(row) > 0) {
+                        headerRow = row;
+                        break;
+                    }
+                }
+
+                if (headerRow == null) throw new IllegalArgumentException("No header row detected in document.");
+
+                List<String> headers = new ArrayList<>();
+                for (int c = 0; c < headerRow.getLastCellNum(); c++) {
+                    headers.add(getCellValueAsString(headerRow.getCell(c)).trim());
+                }
+
+                int headerIdx = headerRow.getRowNum();
+                for (int r = headerIdx + 1; r <= sheet.getLastRowNum(); r++) {
+                    Row row = sheet.getRow(r);
+                    if (row == null || getNonEmptyCellCount(row) == 0) continue;
+
+                    Map<String, String> rowMap = new LinkedHashMap<>();
+                    for (int c = 0; c < headers.size(); c++) {
+                        String h = headers.get(c);
+                        if (h.isEmpty()) continue;
+                        rowMap.put(h, getCellValueAsString(row.getCell(c)).trim());
+                    }
+                    rows.add(rowMap);
+                }
+            }
+        } else {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+                String headerLine = reader.readLine();
+                if (headerLine == null || headerLine.isBlank()) throw new IllegalArgumentException("File is empty.");
+
+                String[] headers = headerLine.split(",");
+                for (int i = 0; i < headers.length; i++) headers[i] = headers[i].trim();
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.isBlank()) continue;
+                    String[] cols = line.split(",", -1);
+                    Map<String, String> rowMap = new LinkedHashMap<>();
+                    for (int c = 0; c < headers.length; c++) {
+                        if (headers[c].isEmpty()) continue;
+                        rowMap.put(headers[c], c < cols.length ? cols[c].trim() : "");
+                    }
+                    rows.add(rowMap);
+                }
+            }
         }
-        return val.isBlank() ? null : val;
+        return rows;
     }
 
-    public record CreateStudentRequest(
-            String registerNumber,
-            String rollNumber,
-            String fullName,
-            String email,
-            String phone,
-            String department,
-            String program,
-            Integer semester,
-            String section,
-            String batch
-    ) {}
+    private int getNonEmptyCellCount(Row row) {
+        int count = 0;
+        for (int c = 0; c < row.getLastCellNum(); c++) {
+            if (!getCellValueAsString(row.getCell(c)).trim().isEmpty()) count++;
+        }
+        return count;
+    }
+
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) return "";
+        switch (cell.getCellType()) {
+            case STRING: return cell.getStringCellValue();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) return cell.getDateCellValue().toString();
+                double val = cell.getNumericCellValue();
+                return val == (long) val ? String.format("%d", (long) val) : String.format("%s", val);
+            case BOOLEAN: return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                try {
+                    return cell.getStringCellValue();
+                } catch (Exception e) {
+                    return String.valueOf(cell.getNumericCellValue());
+                }
+            default: return "";
+        }
+    }
+
+    private String matchHeader(Set<String> headers, String... possibleHeaders) {
+        for (String possible : possibleHeaders) {
+            for (String h : headers) {
+                if (h.equalsIgnoreCase(possible) ||
+                        h.toLowerCase().replace(" ", "").replace("_", "").replace("/", "").equals(
+                                possible.toLowerCase().replace(" ", "").replace("_", "").replace("/", ""))) {
+                    return h;
+                }
+            }
+        }
+        return null;
+    }
 }
