@@ -185,11 +185,18 @@ export const adminApi = {
   previewImportCourses: (formData) => upload('/admin/courses/import/preview', formData),
   confirmImportCourses: (data) => post('/admin/courses/import/confirm', data),
 
-  // Faculty
-  getFaculty: () => get('/admin/faculty'),
+  // Faculty & Course Allocations
+  getFaculty: (params) => get('/admin/faculty', params),
+  getFacultyAllocations: (semesterId, academicYearId) => get('/admin/faculty', { semesterId, academicYearId }),
   createFaculty: (data) => post('/admin/faculty', data),
-  allocateFaculty: (data) => post('/admin/faculty-allocations', data),
-  removeAllocation: (id) => del(`/admin/faculty-allocations/${id}`),
+  assignFacultyCourse: (data) => post('/admin/faculty/assignments', data),
+  updateFacultyAssignment: (assignmentId, data) => patch(`/admin/faculty/assignments/${assignmentId}`, data),
+  deleteFacultyAssignment: (assignmentId, semesterId, academicYearId) => del(`/admin/faculty/assignments/${assignmentId}`, { semesterId, academicYearId }),
+  allocateFaculty: (data) => post('/admin/faculty/assignments', data),
+  removeAllocation: (id) => del(`/admin/faculty/assignments/${id}`),
+  previewImportFaculty: (formData) => upload('/admin/faculty/import/preview', formData),
+  confirmImportFaculty: (data) => post('/admin/faculty/import/confirm', data),
+  getFacultyImportTemplate: (semesterId) => apiClient.get('/admin/faculty/template', { params: { semesterId }, responseType: 'blob' }),
 
   // Timetable
   getTimetable: (workspaceId) => get(`/admin/workspaces/${workspaceId}/timetable`),

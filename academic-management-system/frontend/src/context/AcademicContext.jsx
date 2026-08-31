@@ -380,7 +380,155 @@ export const AcademicProvider = ({ children }) => {
       };
     });
 
-    logAction('Courses Imported', `Imported ${coursesList.length} subjects into Semester ${sem}.`);
+    logAction('Bulk Courses Imported', `Imported ${coursesList.length} courses into Semester ${sem}.`);
+  };
+
+  const assignFacultyCourse = (semId, allocation) => {
+    const sem = semId || activeSemester;
+    const { facultyId, courseId, courseCode, weeklyTeachingCredits = 4, assignedRole = 'PRIMARY' } = allocation;
+
+    setSemesters(prev => {
+      const current = prev[sem];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [sem]: {
+          ...current,
+          courses: current.courses.map(c => {
+            if (c.id === courseId || c.code === courseId || c.code === courseCode) {
+              return { ...c, facultyId, weeklyTeachingCredits, assignedRole };
+            }
+            return c;
+          })
+        }
+      };
+    });
+
+    setFacultyAllocations(prev => {
+      const filtered = prev.filter(a => !(a.semesterId === sem && (a.courseId === courseId || a.courseCode === courseCode)));
+      const newAllocation = {
+        id: allocation.id || `asg-${Date.now()}`,
+        facultyId,
+        courseId: courseId || courseCode,
+        courseCode: courseCode || courseId,
+        semesterId: sem,
+        weeklyTeachingCredits: Number(weeklyTeachingCredits) || 4,
+        assignedRole,
+        status: 'ACTIVE'
+      };
+      return [...filtered, newAllocation];
+    });
+
+    logAction('Faculty Allocated', `Assigned course ${courseCode || courseId} to faculty in Semester ${sem}.`);
+  };
+
+  const updateFacultyCourseAssignment = (semId, assignmentId, updates) => {
+    const sem = semId || activeSemester;
+    setFacultyAllocations(prev => prev.map(a => {
+      if (a.id === assignmentId || a.courseCode === assignmentId) {
+        return { ...a, ...updates };
+      }
+      return a;
+    }));
+
+    if (updates.courseId || updates.courseCode || updates.facultyId) {
+      setSemesters(prev => {
+        const current = prev[sem];
+        if (!current) return prev;
+        return {
+          ...prev,
+          [sem]: {
+            ...current,
+            courses: current.courses.map(c => {
+              if (c.id === updates.courseId || c.code === updates.courseCode) {
+                return { ...c, facultyId: updates.facultyId || c.facultyId };
+              }
+              return c;
+            })
+          }
+        };
+      });
+    }
+
+    logAction('Faculty Assignment Updated', `Updated assignment ${assignmentId} in Semester ${sem}.`);
+  };
+
+  const removeFacultyCourseAssignment = (semId, assignmentId, courseId) => {
+    const sem = semId || activeSemester;
+    setFacultyAllocations(prev => prev.filter(a => !(a.semesterId === sem && (a.id === assignmentId || a.courseCode === courseId || a.courseId === courseId))));
+
+    setSemesters(prev => {
+      const current = prev[sem];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [sem]: {
+          ...current,
+          courses: current.courses.map(c => {
+            if (c.id === courseId || c.code === courseId || c.id === assignmentId) {
+              return { ...c, facultyId: null };
+            }
+            return c;
+          })
+        }
+      };
+    });
+
+    logAction('Faculty Assignment Removed', `Removed faculty course assignment in Semester ${sem}.`);
+  };
+
+  const importFacultyAssignments = (semId, allocationsList, options = {}) => {
+    const sem = semId || activeSemester;
+    const { mode = 'merge' } = options;
+
+    setFacultyAllocations(prev => {
+      let updated = mode === 'replace-semester' ? prev.filter(a => a.semesterId !== sem) : [...prev];
+      allocationsList.forEach(raw => {
+        const facId = raw.facultyId || raw.facultyCode || 'FAC01';
+        const cCode = (raw.courseCode || raw.code || '').trim().toUpperCase();
+        const credits = Number(raw.weeklyTeachingCredits || raw.credits) || 4;
+        const role = raw.assignedRole || 'PRIMARY';
+
+        const existingIdx = updated.findIndex(a => a.semesterId === sem && a.courseCode === cCode);
+        const newAlloc = {
+          id: raw.id || `asg-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          facultyId: facId,
+          courseId: cCode,
+          courseCode: cCode,
+          semesterId: sem,
+          weeklyTeachingCredits: credits,
+          assignedRole: role,
+          status: 'ACTIVE'
+        };
+
+        if (existingIdx >= 0) {
+          if (mode === 'merge') {
+            updated[existingIdx] = { ...updated[existingIdx], ...newAlloc };
+          }
+        } else {
+          updated.push(newAlloc);
+        }
+      });
+      return updated;
+    });
+
+    setSemesters(prev => {
+      const current = prev[sem];
+      if (!current) return prev;
+      const updatedCourses = current.courses.map(c => {
+        const alloc = allocationsList.find(a => (a.courseCode || a.code || '').toUpperCase() === c.code.toUpperCase());
+        if (alloc) {
+          return { ...c, facultyId: alloc.facultyId || alloc.facultyCode || c.facultyId };
+        }
+        return c;
+      });
+      return {
+        ...prev,
+        [sem]: { ...current, courses: updatedCourses }
+      };
+    });
+
+    logAction('Bulk Faculty Allocations Imported', `Imported ${allocationsList.length} faculty allocations into Semester ${sem} (Mode: ${mode}).`);
   };
 
   const updateStudentAttendance = (semId, studentId, newAttendance) => {
@@ -1357,6 +1505,10 @@ export const AcademicProvider = ({ children }) => {
         deleteCourse,
         bulkDeleteCourses,
         importCourses,
+        assignFacultyCourse,
+        updateFacultyCourseAssignment,
+        removeFacultyCourseAssignment,
+        importFacultyAssignments,
         updateStudentAttendance,
         updateStudentMarks,
         getTimetableForDate,
