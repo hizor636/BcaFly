@@ -5,7 +5,20 @@ import { LedgerTable } from '../../../components/common/LedgerTable';
 import { Modal } from '../../../components/ui/Modal';
 import { Badge } from '../../../components/ui/Badge';
 import { ExportToolbar } from '../../../components/ui/ExportToolbar';
-import { UserCheck, Plus, Edit2, Trash2, CheckCircle2, AlertTriangle, BookOpen, Layers, Award, Clock } from 'lucide-react';
+import {
+  UserCheck,
+  Plus,
+  Edit2,
+  Trash2,
+  CheckCircle2,
+  AlertTriangle,
+  BookOpen,
+  Layers,
+  Award,
+  Clock,
+  Users,
+  UserPlus
+} from 'lucide-react';
 import apiService from '../../../services/apiService';
 import * as XLSX from 'xlsx';
 
@@ -21,6 +34,7 @@ export const AdminFacultyPage = () => {
     logAction
   } = useAcademic();
 
+  const [activeTab, setActiveTab] = useState('assigned'); // 'assigned' | 'available'
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
@@ -52,7 +66,7 @@ export const AdminFacultyPage = () => {
   // Import State
   const [importAnalysis, setImportAnalysis] = useState(null);
   const [importFilter, setImportFilter] = useState('all');
-  const [importMode, setImportMode] = useState('merge'); // 'merge' | 'add-only' | 'replace-semester'
+  const [importMode, setImportMode] = useState('merge');
   const [importSuccessMsg, setImportSuccessMsg] = useState(null);
   const [isIngesting, setIsIngesting] = useState(false);
 
@@ -70,7 +84,6 @@ export const AdminFacultyPage = () => {
   // Compute workload and assigned courses strictly for the active semester
   const facultyWithWorkload = useMemo(() => {
     return faculty.map(f => {
-      // Find courses assigned to this faculty in the active semester
       const assigned = courses.filter(c => c.facultyId === f.id || c.facultyId === f.facultyCode);
       const totalCredits = assigned.reduce((sum, c) => sum + (Number(c.weeklyTeachingCredits || c.credits) || 4), 0);
 
@@ -83,18 +96,33 @@ export const AdminFacultyPage = () => {
     });
   }, [faculty, courses]);
 
+  // Split into Assigned vs Available Faculty
+  const assignedFaculty = useMemo(() => facultyWithWorkload.filter(f => f.courseCount > 0), [facultyWithWorkload]);
+  const availableFaculty = useMemo(() => facultyWithWorkload.filter(f => f.courseCount === 0), [facultyWithWorkload]);
+
   // Metrics Bar computation
-  const totalAssignedFaculty = useMemo(() => facultyWithWorkload.filter(f => f.courseCount > 0).length, [facultyWithWorkload]);
+  const totalAssignedFaculty = assignedFaculty.length;
   const totalAllocations = useMemo(() => courses.filter(c => c.facultyId).length, [courses]);
-  const totalWeeklyCredits = useMemo(() => facultyWithWorkload.reduce((sum, f) => sum + f.totalCredits, 0), [facultyWithWorkload]);
+  const totalWeeklyCredits = useMemo(() => assignedFaculty.reduce((sum, f) => sum + f.totalCredits, 0), [assignedFaculty]);
   const labInchargesCount = useMemo(() => courses.filter(c => c.assignedRole === 'LAB_INCHARGE' || (c.type && c.type.toLowerCase().includes('lab'))).length, [courses]);
 
-  const filteredFaculty = facultyWithWorkload.filter(f => {
-    if (deptFilter !== 'ALL' && f.dept !== deptFilter && f.department !== deptFilter) return false;
-    const term = search.toLowerCase();
-    if (search && !f.name.toLowerCase().includes(term) && !f.id.toLowerCase().includes(term)) return false;
-    return true;
-  });
+  const filteredAssignedFaculty = useMemo(() => {
+    return assignedFaculty.filter(f => {
+      if (deptFilter !== 'ALL' && f.dept !== deptFilter && f.department !== deptFilter) return false;
+      const term = search.toLowerCase();
+      if (search && !f.name.toLowerCase().includes(term) && !f.id.toLowerCase().includes(term)) return false;
+      return true;
+    });
+  }, [assignedFaculty, deptFilter, search]);
+
+  const filteredAvailableFaculty = useMemo(() => {
+    return availableFaculty.filter(f => {
+      if (deptFilter !== 'ALL' && f.dept !== deptFilter && f.department !== deptFilter) return false;
+      const term = search.toLowerCase();
+      if (search && !f.name.toLowerCase().includes(term) && !f.id.toLowerCase().includes(term)) return false;
+      return true;
+    });
+  }, [availableFaculty, deptFilter, search]);
 
   // Open Assign Modal
   const handleOpenAssign = (preselectedFacultyId = '') => {
@@ -139,6 +167,7 @@ export const AdminFacultyPage = () => {
     assignFacultyCourse(activeSemester, payload);
     setAssignModalOpen(false);
     setImportSuccessMsg(`✓ Assigned course ${assignFormData.courseCode} to faculty in Semester ${activeSemester}.`);
+    setActiveTab('assigned');
     setTimeout(() => setImportSuccessMsg(null), 4000);
   };
 
@@ -299,7 +328,6 @@ export const AdminFacultyPage = () => {
       if (!rawCCode) errors.push("Course code is missing.");
       if (!rawFacId) errors.push("Faculty ID is missing.");
 
-      // Check course belongs to active semester
       if (rawCCode && validSemesterCourses.size > 0 && !validSemesterCourses.has(rawCCode)) {
         errors.push(`Course ${rawCCode} does not belong to Semester ${activeSemester}.`);
       }
@@ -311,7 +339,6 @@ export const AdminFacultyPage = () => {
         seenPairs.add(pairKey);
       }
 
-      // Check if already allocated in semester
       const existingInSem = courses.some(c => c.code.toUpperCase() === rawCCode && (c.facultyId === rawFacId));
       if (existingInSem) {
         warnings.push(`Allocation already exists in Semester ${activeSemester}. Will update credits.`);
@@ -395,6 +422,7 @@ export const AdminFacultyPage = () => {
     setImportSuccessMsg(`✓ Successfully imported ${validRows.length} faculty course allocations into Semester ${activeSemester}.`);
     setImportModalOpen(false);
     setImportAnalysis(null);
+    setActiveTab('assigned');
     setTimeout(() => setImportSuccessMsg(null), 5000);
   };
 
@@ -436,10 +464,10 @@ export const AdminFacultyPage = () => {
   }, [importAnalysis, importFilter]);
 
   const headers = ['Faculty ID', 'Faculty Name', 'Designation', 'Assigned Courses (Sem ' + activeSemester + ')', 'Weekly Credits', 'Contact Email'];
-  const rows = filteredFaculty.map(f => [
+  const exportRows = assignedFaculty.map(f => [
     f.id,
     f.name,
-    f.role,
+    f.role || f.designation,
     f.assignedCourses.map(c => c.code).join(', ') || 'None',
     `${f.totalCredits} Credits/wk`,
     f.email
@@ -483,7 +511,7 @@ export const AdminFacultyPage = () => {
             title={`Faculty Allocation — Semester ${activeSemester}`}
             subtitle={`Department of Computer Applications — ${activeWorkspace?.term || '2024–25 EVEN'}`}
             headers={headers}
-            rows={rows}
+            rows={exportRows}
           />
         </div>
       </div>
@@ -556,14 +584,39 @@ export const AdminFacultyPage = () => {
         />
       </div>
 
-      {/* Faculty Table */}
+      {/* Section Switcher Tabs */}
       <div className="card p-6 bg-white space-y-4">
         <div className="flex items-center justify-between border-b border-[var(--rule)] pb-3 flex-wrap gap-3 font-mono text-xs">
           <div className="flex items-center gap-2">
-            <h4 className="font-display font-bold text-base text-[var(--ink)]">
-              Faculty Workload &amp; Allocations ({filteredFaculty.length} Instructors)
-            </h4>
-            <span className="badge b-ink text-[10px] font-bold">SEMESTER {activeSemester}</span>
+            <button
+              onClick={() => setActiveTab('assigned')}
+              className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                activeTab === 'assigned'
+                  ? 'bg-[var(--ink)] text-[var(--parchment)] shadow-2xs'
+                  : 'bg-[var(--parchment-2)] hover:bg-[var(--parchment-3)] text-[var(--slate)]'
+              }`}
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              <span>Assigned Faculty (Sem {activeSemester})</span>
+              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
+                {assignedFaculty.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('available')}
+              className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                activeTab === 'available'
+                  ? 'bg-[var(--ink)] text-[var(--parchment)] shadow-2xs'
+                  : 'bg-[var(--parchment-2)] hover:bg-[var(--parchment-3)] text-[var(--slate)]'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Available Faculty Registry</span>
+              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
+                {availableFaculty.length}
+              </span>
+            </button>
           </div>
 
           <div className="flex items-center gap-3">
@@ -572,97 +625,188 @@ export const AdminFacultyPage = () => {
               placeholder="Search faculty..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="field-input text-xs py-1 w-48"
+              className="field-input text-xs py-1 w-48 font-mono"
             />
           </div>
         </div>
 
-        <LedgerTable
-          columns={[
-            {
-              header: 'Faculty ID',
-              accessor: 'id',
-              render: (f) => <span className="font-mono font-bold text-[var(--brass-2)]">{f.id}</span>
-            },
-            {
-              header: 'Faculty Name',
-              accessor: 'name',
-              render: (f) => (
-                <div className="font-mono text-xs">
-                  <div className="font-bold text-[var(--ink)]">{f.name}</div>
-                  <div className="text-[10px] text-[var(--slate)]">{f.role || f.designation}</div>
+        {/* Tab 1: Assigned Faculty */}
+        {activeTab === 'assigned' && (
+          <div>
+            {assignedFaculty.length === 0 ? (
+              /* Exact Requested Empty State */
+              <div className="p-12 text-center border-2 border-dashed border-[var(--rule)] rounded-xl bg-[var(--parchment-2)]/50 space-y-3">
+                <div className="w-12 h-12 mx-auto rounded-full bg-[var(--parchment-3)] flex items-center justify-center text-xl text-[var(--slate)]">
+                  👨‍🏫
                 </div>
-              )
-            },
-            { header: 'Department', accessor: 'dept' },
-            {
-              header: `Assigned Courses (Sem ${activeSemester})`,
-              accessor: 'assignedCourses',
-              render: (f) => (
-                <div className="flex flex-wrap gap-1.5 font-mono text-xs">
-                  {f.assignedCourses.length > 0 ? (
-                    f.assignedCourses.map((c, i) => (
-                      <div key={i} className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[var(--parchment-2)] border border-[var(--rule)] rounded font-bold text-[var(--ink)] text-xs">
-                        <span>{c.code}</span>
-                        <span className="text-[10px] text-[var(--slate)] font-normal">({c.weeklyTeachingCredits || c.credits}cr)</span>
-                        <button
-                          onClick={() => handleOpenEdit(f, c)}
-                          className="text-[var(--slate)] hover:text-[var(--ink)] cursor-pointer"
-                          title="Edit Assignment"
-                        >
-                          <Edit2 className="w-2.5 h-2.5" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenRemove(f, c)}
-                          className="text-[var(--slate)] hover:text-red-600 cursor-pointer"
-                          title="Remove Assignment"
-                        >
-                          <Trash2 className="w-2.5 h-2.5" />
-                        </button>
+                <h4 className="font-display font-bold text-base text-[var(--ink)]">
+                  No faculty assigned yet
+                </h4>
+                <p className="text-xs text-[var(--slate)] max-w-md mx-auto font-mono leading-relaxed">
+                  There are currently no faculty-course allocations for BCA Semester {activeSemester}. More allocations will appear here after faculty are assigned to courses.
+                </p>
+                <div className="pt-2">
+                  <button
+                    disabled={!activeSemester}
+                    onClick={() => handleOpenAssign()}
+                    className="btn-brass px-4 py-2 rounded text-xs font-mono font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Assign First Course Allocation</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <LedgerTable
+                columns={[
+                  {
+                    header: 'Faculty ID',
+                    accessor: 'id',
+                    render: (f) => <span className="font-mono font-bold text-[var(--brass-2)]">{f.id}</span>
+                  },
+                  {
+                    header: 'Faculty Name',
+                    accessor: 'name',
+                    render: (f) => (
+                      <div className="font-mono text-xs">
+                        <div className="font-bold text-[var(--ink)]">{f.name}</div>
+                        <div className="text-[10px] text-[var(--slate)]">{f.role || f.designation}</div>
                       </div>
-                    ))
-                  ) : (
-                    <span className="text-[var(--slate)] italic text-[10px]">No active course in Sem {activeSemester}</span>
-                  )}
-                </div>
-              )
-            },
-            {
-              header: 'Teaching Load',
-              accessor: 'totalCredits',
-              render: (f) => (
-                <span className={`font-mono font-bold text-xs ${f.totalCredits > 0 ? 'text-emerald-800' : 'text-[var(--slate)]'}`}>
-                  {f.totalCredits} Credits/wk
-                </span>
-              )
-            },
-            {
-              header: 'Contact Email',
-              accessor: 'email',
-              render: (f) => (
-                <div className="font-mono text-[11px] text-[var(--slate)]">
-                  <div>{f.email}</div>
-                  <div className="text-[10px]">{f.phone}</div>
-                </div>
-              )
-            },
-            {
-              header: 'Actions',
-              accessor: 'actions',
-              render: (f) => (
-                <button
-                  onClick={() => handleOpenAssign(f.id)}
-                  className="px-2.5 py-1 bg-white hover:bg-[var(--parchment-2)] border border-[var(--rule)] rounded font-mono text-[11px] font-bold text-[var(--ink)] flex items-center gap-1 shadow-2xs cursor-pointer"
-                  title="Assign New Course"
-                >
-                  <Plus className="w-3 h-3" />
-                  <span>Assign</span>
-                </button>
-              )
-            }
-          ]}
-          data={filteredFaculty}
-        />
+                    )
+                  },
+                  { header: 'Department', accessor: 'dept' },
+                  {
+                    header: `Assigned Courses (Sem ${activeSemester})`,
+                    accessor: 'assignedCourses',
+                    render: (f) => (
+                      <div className="flex flex-wrap gap-1.5 font-mono text-xs">
+                        {f.assignedCourses.map((c, i) => (
+                          <div key={i} className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[var(--parchment-2)] border border-[var(--rule)] rounded font-bold text-[var(--ink)] text-xs">
+                            <span>{c.code}</span>
+                            <span className="text-[10px] text-[var(--slate)] font-normal">({c.weeklyTeachingCredits || c.credits}cr)</span>
+                            <button
+                              onClick={() => handleOpenEdit(f, c)}
+                              className="text-[var(--slate)] hover:text-[var(--ink)] cursor-pointer"
+                              title="Edit Assignment"
+                            >
+                              <Edit2 className="w-2.5 h-2.5" />
+                            </button>
+                            <button
+                              onClick={() => handleOpenRemove(f, c)}
+                              className="text-[var(--slate)] hover:text-red-600 cursor-pointer"
+                              title="Remove Assignment"
+                            >
+                              <Trash2 className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  },
+                  {
+                    header: 'Teaching Load',
+                    accessor: 'totalCredits',
+                    render: (f) => (
+                      <span className="font-mono font-bold text-xs text-emerald-800">
+                        {f.totalCredits} Credits/wk
+                      </span>
+                    )
+                  },
+                  {
+                    header: 'Contact Email',
+                    accessor: 'email',
+                    render: (f) => (
+                      <div className="font-mono text-[11px] text-[var(--slate)]">
+                        <div>{f.email}</div>
+                        <div className="text-[10px]">{f.phone}</div>
+                      </div>
+                    )
+                  },
+                  {
+                    header: 'Actions',
+                    accessor: 'actions',
+                    render: (f) => (
+                      <button
+                        onClick={() => handleOpenAssign(f.id)}
+                        className="px-2.5 py-1 bg-white hover:bg-[var(--parchment-2)] border border-[var(--rule)] rounded font-mono text-[11px] font-bold text-[var(--ink)] flex items-center gap-1 shadow-2xs cursor-pointer"
+                        title="Assign Another Course"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Assign</span>
+                      </button>
+                    )
+                  }
+                ]}
+                data={filteredAssignedFaculty}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Tab 2: Available Faculty Registry */}
+        {activeTab === 'available' && (
+          <div className="space-y-3">
+            <div className="p-3 bg-[var(--parchment-2)] border border-[var(--rule)] rounded-lg font-mono text-xs text-[var(--slate)] flex justify-between items-center">
+              <span>These faculty profiles are registered in the master directory but currently have no course assignments in <strong>Semester {activeSemester}</strong>.</span>
+              <span className="badge b-ink">{filteredAvailableFaculty.length} Available</span>
+            </div>
+
+            <LedgerTable
+              columns={[
+                {
+                  header: 'Faculty ID',
+                  accessor: 'id',
+                  render: (f) => <span className="font-mono font-bold text-[var(--brass-2)]">{f.id}</span>
+                },
+                {
+                  header: 'Faculty Name',
+                  accessor: 'name',
+                  render: (f) => (
+                    <div className="font-mono text-xs">
+                      <div className="font-bold text-[var(--ink)]">{f.name}</div>
+                      <div className="text-[10px] text-[var(--slate)]">{f.role || f.designation}</div>
+                    </div>
+                  )
+                },
+                { header: 'Department', accessor: 'dept' },
+                {
+                  header: 'Status in Semester ' + activeSemester,
+                  accessor: 'status',
+                  render: () => (
+                    <span className="text-[var(--slate)] italic text-xs font-mono">
+                      Available for Assignment
+                    </span>
+                  )
+                },
+                {
+                  header: 'Contact Email',
+                  accessor: 'email',
+                  render: (f) => (
+                    <div className="font-mono text-[11px] text-[var(--slate)]">
+                      <div>{f.email}</div>
+                      <div className="text-[10px]">{f.phone}</div>
+                    </div>
+                  )
+                },
+                {
+                  header: 'Actions',
+                  accessor: 'actions',
+                  render: (f) => (
+                    <button
+                      onClick={() => handleOpenAssign(f.id)}
+                      className="btn-brass px-3 py-1 rounded font-mono text-[11px] font-bold flex items-center gap-1 shadow-2xs cursor-pointer"
+                      title="Assign Course"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Assign Course</span>
+                    </button>
+                  )
+                }
+              ]}
+              data={filteredAvailableFaculty}
+            />
+          </div>
+        )}
       </div>
 
       {/* Assign Faculty Modal */}
