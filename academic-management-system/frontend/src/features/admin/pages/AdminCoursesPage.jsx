@@ -7,6 +7,7 @@ import { Badge } from '../../../components/ui/Badge';
 import { ExportToolbar } from '../../../components/ui/ExportToolbar';
 import { parseCourseFile, SYSTEM_FIELDS } from '../../../utils/courseImportParser';
 import { Edit2, Trash2, Plus, AlertCircle, CheckCircle2, AlertTriangle, XCircle, FileSpreadsheet, Layers, BookOpen } from 'lucide-react';
+import apiService from '../../../services/apiService';
 
 export const AdminCoursesPage = () => {
   const {
@@ -50,10 +51,20 @@ export const AdminCoursesPage = () => {
   const [importFilter, setImportFilter] = useState('all'); // 'all' | 'ready' | 'warning' | 'error'
   const [importOptions, setImportOptions] = useState({
     overwriteDuplicates: true,
-    skipErrors: true
+    skipErrors: true,
+    replaceMode: false
   });
   const [importSuccessMsg, setImportSuccessMsg] = useState('');
   const [isIngesting, setIsIngesting] = useState(false);
+
+  // Clear selected file/preview if the semester changes
+  React.useEffect(() => {
+    if (importAnalysis) {
+      setImportAnalysis(null);
+      setImportModalOpen(false);
+      alert("Active semester changed. Please select the file again for the new target semester.");
+    }
+  }, [activeSemester]);
 
   // Compute metrics
   const totalCredits = useMemo(() => courses.reduce((sum, c) => sum + (Number(c.credits) || 0), 0), [courses]);
@@ -175,10 +186,56 @@ export const AdminCoursesPage = () => {
 
   // File Upload and Parsing Handler
   const handleFileSelect = async (file) => {
+    if (!activeSemester) {
+      alert("Select a semester before uploading a document.");
+      return;
+    }
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext !== 'csv' && ext !== 'xlsx' && ext !== 'xls') {
+      alert("Please select a CSV, XLS, or XLSX document.");
+      return;
+    }
+
     setIsIngesting(true);
     setImportSuccessMsg('');
     try {
-      const analysis = await parseCourseFile(file, courses, faculty);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('semesterId', String(activeSemester));
+      formData.append('academicYearId', activeWorkspace?.term || '2025-26-odd');
+
+      let analysis;
+      try {
+        const response = await apiService.admin.previewImportCourses(formData);
+        if (response && response.success) {
+          analysis = {
+            uploadId: response.uploadId,
+            fileName: file.name,
+            fileSize: file.size,
+            stats: response.stats,
+            rows: response.rows,
+            mappedFields: ["courseCode", "courseTitle", "courseType", "credits"],
+            detectedHeaders: {
+              courseCode: "Course Code",
+              courseTitle: "Course Title",
+              courseType: "Course Type",
+              credits: "Credits"
+            },
+            unknownHeaders: [],
+            isBackend: true
+          };
+        }
+      } catch (apiErr) {
+        console.warn("Backend preview failed or offline, falling back to local client parsing:", apiErr);
+        const clientAnalysis = await parseCourseFile(file, courses, faculty);
+        analysis = {
+          ...clientAnalysis,
+          uploadId: "UP-" + Date.now(),
+          isBackend: false
+        };
+      }
+
       setImportAnalysis(analysis);
       setImportFilter('all');
       setImportModalOpen(true);
@@ -190,7 +247,7 @@ export const AdminCoursesPage = () => {
   };
 
   // Import Confirmation Handler
-  const handleConfirmImport = () => {
+  const handleConfirmImport = async () => {
     if (!importAnalysis || !importAnalysis.rows) return;
 
     let rowsToImport = importAnalysis.rows;
@@ -204,8 +261,29 @@ export const AdminCoursesPage = () => {
       return;
     }
 
+    const confirmMsg = `Import ${rowsToImport.length} courses into Semester ${activeSemester}?`;
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
+
+    const mode = importOptions.replaceMode ? 'replace' : 'merge';
+
+    try {
+      if (importAnalysis.isBackend) {
+        await apiService.admin.confirmImportCourses({
+          uploadId: importAnalysis.uploadId,
+          semesterId: activeSemester,
+          academicYearId: activeWorkspace?.term || '2025-26-odd',
+          mode: mode
+        });
+      }
+    } catch (apiErr) {
+      console.warn("Backend import confirmation failed or offline, continuing local state import:", apiErr);
+    }
+
     importCourses(activeSemester, rowsToImport, {
-      overwriteDuplicates: importOptions.overwriteDuplicates
+      overwriteDuplicates: importOptions.overwriteDuplicates,
+      replaceMode: importOptions.replaceMode
     });
 
     setImportSuccessMsg(`Successfully imported ${rowsToImport.length} subjects into Semester ${activeSemester}.`);
@@ -336,13 +414,19 @@ export const AdminCoursesPage = () => {
       </div>
 
       {/* Ingestion Zone with Dynamic File Parsing */}
-      <IngestionZone
-        title="IMPORT COURSE SPECIFICATIONS"
-        description="Bulk import course codes, credit hours, lab requirements (CSV/XLSX) or upload syllabus spreadsheets with automated column matching and preview validation."
-        acceptedFormats={['.CSV', '.XLSX', '.XLS']}
-        onFileSelect={handleFileSelect}
-        icon={isIngesting ? '⏳' : '📂'}
-      />
+      <div className={!activeSemester ? "opacity-50 pointer-events-none" : ""}>
+        <IngestionZone
+          title="IMPORT COURSE SPECIFICATIONS"
+          description={
+            activeSemester
+              ? `Importing into: BCA Semester ${activeSemester} (${activeWorkspace?.term || '2025–26 ODD'})`
+              : "Select a semester before uploading a document."
+          }
+          acceptedFormats={['.CSV', '.XLSX', '.XLS']}
+          onFileSelect={activeSemester ? handleFileSelect : undefined}
+          icon={isIngesting ? '⏳' : '📂'}
+        />
+      </div>
 
       {/* Bulk Actions Banner when items are selected */}
       {selectedIds.length > 0 && (
@@ -866,15 +950,24 @@ export const AdminCoursesPage = () => {
               </div>
 
               {/* Options */}
-              <div className="flex items-center gap-3 text-xs font-mono">
+              <div className="flex items-center gap-4 text-xs font-mono">
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={importOptions.overwriteDuplicates}
-                    onChange={(e) => setImportOptions({ ...importOptions, overwriteDuplicates: e.target.checked })}
+                    onChange={(e) => setImportOptions({ ...importOptions, overwriteDuplicates: e.target.checked, replaceMode: e.target.checked ? false : importOptions.replaceMode })}
                     className="rounded border-[var(--rule)]"
                   />
-                  <span>Update existing courses on code match</span>
+                  <span>Update existing courses (Merge Mode)</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer text-red-700 font-bold">
+                  <input
+                    type="checkbox"
+                    checked={importOptions.replaceMode}
+                    onChange={(e) => setImportOptions({ ...importOptions, replaceMode: e.target.checked, overwriteDuplicates: e.target.checked ? false : importOptions.overwriteDuplicates })}
+                    className="rounded border-red-300"
+                  />
+                  <span>Replace Existing Semester Courses (Safe Replace Mode)</span>
                 </label>
               </div>
             </div>
@@ -956,10 +1049,21 @@ export const AdminCoursesPage = () => {
               </table>
             </div>
 
-            {/* Bottom Actions */}
+             {/* Bottom Actions */}
             <div className="flex items-center justify-between gap-3 pt-3 border-t border-[var(--rule)] flex-wrap">
-              <div className="text-xs font-mono text-[var(--slate)]">
-                {importAnalysis.stats.validCount} valid course(s) ready to be written to Semester {activeSemester}.
+              <div className="text-xs font-mono text-[var(--slate)] space-y-1">
+                <div>
+                  <span className="font-bold text-[var(--ink)]">Target workspace:</span> BCA Semester {activeSemester} ({activeWorkspace?.term || '2025–26 ODD'})
+                </div>
+                <div>
+                  <span className="font-bold text-[var(--ink)]">File:</span> {importAnalysis.fileName}
+                </div>
+                <div>
+                  <span className="font-bold text-[var(--ink)]">Valid rows:</span> {importAnalysis.stats.validCount} | <span className="font-bold text-[var(--ink)]">Invalid rows:</span> {importAnalysis.stats.errorCount}
+                </div>
+                <div className="text-amber-800 font-bold">
+                  Action: Import valid rows into Semester {activeSemester} ({importOptions.replaceMode ? "Replace Mode" : "Merge Mode"})
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
@@ -980,7 +1084,7 @@ export const AdminCoursesPage = () => {
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  <span>Confirm Ingestion ({importAnalysis.stats.validCount} Courses) →</span>
+                  <span>Import valid rows into Semester {activeSemester} →</span>
                 </button>
               </div>
             </div>

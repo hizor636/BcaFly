@@ -244,11 +244,11 @@ export const AcademicProvider = ({ children }) => {
 
   const importCourses = (semId, coursesList, options = {}) => {
     const sem = semId || activeSemester;
-    const { overwriteDuplicates = false } = options;
+    const { overwriteDuplicates = false, replaceMode = false } = options;
 
     setSemesters(prev => {
       const current = prev[sem] || { students: [], courses: [] };
-      let updatedCourses = [...current.courses];
+      let updatedCourses = replaceMode ? [] : [...current.courses];
 
       coursesList.forEach(raw => {
         const code = (raw.code || raw.courseCode || '').trim().toUpperCase();

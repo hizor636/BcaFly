@@ -169,13 +169,14 @@ export const adminApi = {
 
   // Courses
   getCourses: (workspaceId) => get(`/admin/workspaces/${workspaceId}/courses`),
+  getCoursesFiltered: (semesterId, academicYearId) => get('/admin/courses', { semesterId, academicYearId }),
   mapCourse: (workspaceId, data) => post(`/admin/workspaces/${workspaceId}/courses`, data),
-  addCourse: (semesterId, data) => post(`/admin/semesters/${semesterId}/courses`, data),
-  updateCourse: (semesterId, courseId, data) => put(`/admin/semesters/${semesterId}/courses/${courseId}`, data),
-  deleteCourse: (semesterId, courseId) => del(`/admin/semesters/${semesterId}/courses/${courseId}`),
-  bulkDeleteCourses: (semesterId, courseIds) => post(`/admin/semesters/${semesterId}/courses/bulk-delete`, { courseIds }),
-  previewImportCourses: (semesterId, data) => post(`/admin/semesters/${semesterId}/courses/import-preview`, data),
-  confirmImportCourses: (semesterId, data) => post(`/admin/semesters/${semesterId}/courses/import-confirm`, data),
+  addCourse: (semesterId, data) => post(`/api/admin/courses`, data),
+  updateCourse: (semesterId, courseId, data) => put(`/api/admin/courses/${courseId}`, data),
+  deleteCourse: (semesterId, courseId) => del(`/api/admin/courses/${courseId}`),
+  bulkDeleteCourses: (semesterId, courseIds) => post(`/api/admin/courses/bulk-delete`, { courseIds }),
+  previewImportCourses: (formData) => upload('/admin/courses/import/preview', formData),
+  confirmImportCourses: (data) => post('/admin/courses/import/confirm', data),
 
   // Faculty
   getFaculty: () => get('/admin/faculty'),
