@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { exportToCSV, exportToExcel, exportToPDF, printElement } from '../../services/exportService';
+import { ChevronDown, FileText, Table, FileCode, Printer } from 'lucide-react';
 
 export const ExportToolbar = ({
   filename = 'academic_report',
@@ -8,46 +9,102 @@ export const ExportToolbar = ({
   headers = [],
   rows = [],
   showPrint = true,
-  extraButtons = null
+  extraButtons = null,
+  disabled = false
 }) => {
-  const handleCSV = () => exportToCSV(filename, headers, rows);
-  const handleExcel = () => exportToExcel(filename, 'Academic Ledger', headers, rows);
-  const handlePDF = () => exportToPDF(title, subtitle, headers, rows, filename);
-  const handlePrint = () => printElement();
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleCSV = () => {
+    setIsOpen(false);
+    exportToCSV(filename, headers, rows);
+  };
+
+  const handleExcel = () => {
+    setIsOpen(false);
+    exportToExcel(filename, 'Academic Ledger', headers, rows);
+  };
+
+  const handlePDF = () => {
+    setIsOpen(false);
+    exportToPDF(title, subtitle, headers, rows, filename);
+  };
+
+  const handlePrint = () => {
+    setIsOpen(false);
+    printElement();
+  };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap text-xs font-mono w-full sm:w-auto">
+    <div className="flex items-center gap-2 text-xs font-mono relative" ref={menuRef}>
       {extraButtons}
-      <button
-        onClick={handleCSV}
-        className="btn-ghost border border-[var(--rule)] px-3 py-2 rounded hover:border-[var(--brass)] flex items-center gap-1.5 min-h-[38px]"
-        title="Export as CSV"
-      >
-        <span>📄</span> CSV
-      </button>
-      <button
-        onClick={handleExcel}
-        className="btn-ghost border border-[var(--rule)] px-3 py-2 rounded hover:border-[var(--brass)] flex items-center gap-1.5 min-h-[38px]"
-        title="Export as Excel .XLSX"
-      >
-        <span>📊</span> EXCEL
-      </button>
-      <button
-        onClick={handlePDF}
-        className="btn-brass px-3 py-2 rounded flex items-center gap-1.5 font-bold min-h-[38px]"
-        title="Export as PDF Document"
-      >
-        <span>📑</span> PDF
-      </button>
-      {showPrint && (
+
+      <div className="relative">
         <button
-          onClick={handlePrint}
-          className="btn-ghost border border-[var(--rule)] px-3 py-2 rounded hover:border-[var(--ink)] flex items-center gap-1.5 min-h-[38px]"
-          title="Print View"
+          type="button"
+          disabled={disabled}
+          onClick={() => setIsOpen(!isOpen)}
+          className={`px-3.5 py-1.5 rounded border border-[var(--rule)] bg-white hover:bg-[var(--parchment-2)] text-[var(--ink)] font-bold flex items-center gap-1.5 shadow-2xs cursor-pointer transition-all ${
+            disabled ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          title="Export Data"
         >
-          <span>🖨️</span> PRINT
+          <span>Export</span>
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
         </button>
-      )}
+
+        {isOpen && (
+          <div className="absolute right-0 mt-1.5 w-48 bg-white border border-[var(--rule)] rounded-lg shadow-lg py-1.5 z-50 font-mono text-xs animate-in fade-in zoom-in-95 duration-100">
+            <button
+              type="button"
+              onClick={handleCSV}
+              className="w-full px-3 py-2 text-left hover:bg-[var(--parchment-2)] text-[var(--ink)] flex items-center gap-2.5 cursor-pointer"
+            >
+              <FileText className="w-4 h-4 text-emerald-600" />
+              <span>Export as CSV</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleExcel}
+              className="w-full px-3 py-2 text-left hover:bg-[var(--parchment-2)] text-[var(--ink)] flex items-center gap-2.5 cursor-pointer"
+            >
+              <Table className="w-4 h-4 text-blue-600" />
+              <span>Export as Excel</span>
+            </button>
+            <button
+              type="button"
+              onClick={handlePDF}
+              className="w-full px-3 py-2 text-left hover:bg-[var(--parchment-2)] text-[var(--ink)] flex items-center gap-2.5 cursor-pointer"
+            >
+              <FileCode className="w-4 h-4 text-red-600" />
+              <span>Export as PDF</span>
+            </button>
+            {showPrint && (
+              <>
+                <div className="my-1 border-t border-[var(--rule)]" />
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="w-full px-3 py-2 text-left hover:bg-[var(--parchment-2)] text-[var(--ink)] flex items-center gap-2.5 cursor-pointer"
+                >
+                  <Printer className="w-4 h-4 text-[var(--slate)]" />
+                  <span>Print</span>
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

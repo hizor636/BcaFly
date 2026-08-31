@@ -477,12 +477,6 @@ export const AdminStudentsPage = () => {
 
         <div className="flex gap-2 items-center flex-wrap">
           <button
-            onClick={downloadTemplate}
-            className="px-3 py-1.5 bg-white hover:bg-[var(--parchment-2)] border border-[var(--rule)] rounded text-xs font-mono font-bold text-[var(--ink)] flex items-center gap-1.5 shadow-2xs cursor-pointer"
-          >
-            <span>📥</span> Download Template
-          </button>
-          <button
             disabled={!activeSemester}
             onClick={handleOpenCreate}
             className={`text-xs font-mono px-4 py-1.5 rounded flex items-center gap-1.5 font-bold shadow-xs cursor-pointer ${
@@ -490,7 +484,7 @@ export const AdminStudentsPage = () => {
             }`}
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Single Enrolment</span>
+            <span>Add Student</span>
           </button>
           <ExportToolbar
             filename={`bca_sem${activeSemester}_roster`}

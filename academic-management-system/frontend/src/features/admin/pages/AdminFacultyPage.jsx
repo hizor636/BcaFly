@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAcademic } from '../../../context/AcademicContext';
-import { IngestionZone } from '../../../components/ui/IngestionZone';
 import { LedgerTable } from '../../../components/common/LedgerTable';
 import { Modal } from '../../../components/ui/Modal';
 import { Badge } from '../../../components/ui/Badge';
@@ -77,7 +76,7 @@ export const AdminFacultyPage = () => {
     if (importAnalysis) {
       setImportAnalysis(null);
       setImportModalOpen(false);
-      alert("Active semester changed. Please select the faculty allocation file again for the new target workspace.");
+      alert("Active semester changed. Please select the faculty allocation document again for the new target workspace.");
     }
   }, [activeSemester]);
 
@@ -142,10 +141,25 @@ export const AdminFacultyPage = () => {
     setAssignModalOpen(true);
   };
 
-  // Submit Assign
+  // Submit Assign with Duplicate Prevention
   const handleAssign = async (e) => {
     e.preventDefault();
     if (!assignFormData.facultyId || !assignFormData.courseCode) return;
+
+    // Check duplicate assignment
+    const matchedFaculty = faculty.find(f => f.id === assignFormData.facultyId);
+    const facultyCode = matchedFaculty?.facultyCode || assignFormData.facultyId;
+
+    const alreadyAssigned = courses.some(
+      (c) =>
+        c.code === assignFormData.courseCode &&
+        (c.facultyId === assignFormData.facultyId || c.facultyId === facultyCode)
+    );
+
+    if (alreadyAssigned) {
+      alert("This faculty member is already assigned to this course for this semester.");
+      return;
+    }
 
     const matchedCourse = courses.find(c => c.code === assignFormData.courseCode);
     const payload = {
@@ -242,9 +256,11 @@ export const AdminFacultyPage = () => {
       return;
     }
 
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (!['csv', 'xlsx', 'xls'].includes(ext)) {
-      alert("Please select a CSV, XLSX, or XLS document.");
+    const allowedExtensions = ['.csv', '.xlsx', '.xls', '.pdf'];
+    const ext = `.${file.name.split('.').pop().toLowerCase()}`;
+
+    if (!allowedExtensions.includes(ext)) {
+      alert("Upload a CSV, XLSX, XLS, or PDF document.");
       return;
     }
 
@@ -426,34 +442,6 @@ export const AdminFacultyPage = () => {
     setTimeout(() => setImportSuccessMsg(null), 5000);
   };
 
-  // Download Sample Template
-  const downloadTemplate = async () => {
-    try {
-      const res = await apiService.admin.getFacultyImportTemplate(activeSemester);
-      const url = window.URL.createObjectURL(new Blob([res]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `bcafly_semester_${activeSemester}_faculty_allocations_template.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err) {
-      const csvContent = "Faculty ID,Faculty Name,Course Code,Weekly Teaching Credits,Assignment Role,Department,Email\n"
-        + "FAC01,Dr. A. Sharma,BCA601,4,PRIMARY,BCA,sharma@example.com\n"
-        + "FAC02,Prof. Sneha Rao,BCA602,4,PRIMARY,BCA,sneha@example.com\n"
-        + "FAC03,Prof. Rajesh Nair,BCA605P,2,LAB_INCHARGE,BCA,rajesh@example.com\n";
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `bcafly_semester_${activeSemester}_faculty_allocations_template.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    }
-  };
-
   const previewRows = useMemo(() => {
     if (!importAnalysis || !importAnalysis.rows) return [];
     if (importFilter === 'all') return importAnalysis.rows;
@@ -475,7 +463,7 @@ export const AdminFacultyPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with New Consolidated Toolbar */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded bg-[var(--brass-soft)] border border-[var(--brass)] text-[var(--brass-2)] font-mono text-[11px] mb-1 font-bold">
@@ -489,13 +477,8 @@ export const AdminFacultyPage = () => {
           </p>
         </div>
 
+        {/* Toolbar: [ Assign Faculty ]  [ Export ▼ ] */}
         <div className="flex gap-2 items-center flex-wrap">
-          <button
-            onClick={downloadTemplate}
-            className="px-3 py-1.5 bg-white hover:bg-[var(--parchment-2)] border border-[var(--rule)] rounded text-xs font-mono font-bold text-[var(--ink)] flex items-center gap-1.5 shadow-2xs cursor-pointer"
-          >
-            <span>📥</span> Download Template
-          </button>
           <button
             disabled={!activeSemester}
             onClick={() => handleOpenAssign()}
@@ -506,6 +489,7 @@ export const AdminFacultyPage = () => {
             <Plus className="w-3.5 h-3.5" />
             <span>Assign Faculty</span>
           </button>
+
           <ExportToolbar
             filename={`bca_sem${activeSemester}_faculty`}
             title={`Faculty Allocation — Semester ${activeSemester}`}
@@ -569,20 +553,43 @@ export const AdminFacultyPage = () => {
         </div>
       </div>
 
-      {/* Spreadsheet Ingestion Zone */}
-      <div className={!activeSemester ? "opacity-50 pointer-events-none" : ""}>
-        <IngestionZone
-          title="FACULTY ALLOCATION DOCUMENT INGESTION"
-          description={
-            activeSemester
-              ? `Target workspace: BCA Semester ${activeSemester} — ${activeWorkspace?.term || '2024–25 EVEN'}`
-              : "Select a semester before uploading allocation documents."
-          }
-          acceptedFormats={['.CSV', '.XLSX', '.XLS', '.PDF']}
-          onFileSelect={activeSemester ? handleFileSelect : undefined}
-          icon={isIngesting ? '⏳' : '📋'}
-        />
-      </div>
+      {/* Single Document Upload Flow */}
+      <section className="card p-5 bg-white border border-[var(--rule)] space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h4 className="font-display font-bold text-base text-[var(--ink)]">
+              Faculty Allocation Import
+            </h4>
+            <p className="text-xs text-[var(--slate)] font-mono">
+              Upload one CSV, Excel, or PDF allocation document for the selected semester.
+            </p>
+          </div>
+
+          <div>
+            <input
+              id="faculty-allocation-document"
+              type="file"
+              accept=".csv,.xlsx,.xls,.pdf"
+              className="hidden"
+              disabled={!activeSemester}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleFileSelect(e.target.files[0]);
+                  e.target.value = '';
+                }
+              }}
+            />
+            <label
+              htmlFor="faculty-allocation-document"
+              className={`px-4 py-2 rounded text-xs font-mono font-bold flex items-center gap-1.5 shadow-xs cursor-pointer ${
+                activeSemester ? 'btn-brass' : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+              }`}
+            >
+              <span>Select Document 📂</span>
+            </label>
+          </div>
+        </div>
+      </section>
 
       {/* Section Switcher Tabs */}
       <div className="card p-6 bg-white space-y-4">
@@ -640,20 +647,27 @@ export const AdminFacultyPage = () => {
                   👨‍🏫
                 </div>
                 <h4 className="font-display font-bold text-base text-[var(--ink)]">
-                  No faculty assigned yet
+                  No faculty assigned yet.
                 </h4>
                 <p className="text-xs text-[var(--slate)] max-w-md mx-auto font-mono leading-relaxed">
-                  There are currently no faculty-course allocations for BCA Semester {activeSemester}. More allocations will appear here after faculty are assigned to courses.
+                  There are currently no faculty-course allocations for this semester.
+                  Use “Assign Faculty” to add an allocation or “Select Document” to import one.
                 </p>
-                <div className="pt-2">
+                <div className="pt-2 flex justify-center items-center gap-3 flex-wrap font-mono">
                   <button
                     disabled={!activeSemester}
                     onClick={() => handleOpenAssign()}
-                    className="btn-brass px-4 py-2 rounded text-xs font-mono font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                    className="btn-brass px-4 py-2 rounded text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Assign First Course Allocation</span>
+                    <span>Assign Faculty</span>
                   </button>
+                  <label
+                    htmlFor="faculty-allocation-document"
+                    className="px-4 py-2 rounded text-xs font-bold bg-white border border-[var(--rule)] hover:bg-[var(--parchment-2)] text-[var(--ink)] shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <span>Select Document 📂</span>
+                  </label>
                 </div>
               </div>
             ) : (
