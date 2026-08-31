@@ -170,7 +170,12 @@ export const adminApi = {
   // Courses
   getCourses: (workspaceId) => get(`/admin/workspaces/${workspaceId}/courses`),
   mapCourse: (workspaceId, data) => post(`/admin/workspaces/${workspaceId}/courses`, data),
-  updateCourse: (id, data) => put(`/admin/courses/${id}`, data),
+  addCourse: (semesterId, data) => post(`/admin/semesters/${semesterId}/courses`, data),
+  updateCourse: (semesterId, courseId, data) => put(`/admin/semesters/${semesterId}/courses/${courseId}`, data),
+  deleteCourse: (semesterId, courseId) => del(`/admin/semesters/${semesterId}/courses/${courseId}`),
+  bulkDeleteCourses: (semesterId, courseIds) => post(`/admin/semesters/${semesterId}/courses/bulk-delete`, { courseIds }),
+  previewImportCourses: (semesterId, data) => post(`/admin/semesters/${semesterId}/courses/import-preview`, data),
+  confirmImportCourses: (semesterId, data) => post(`/admin/semesters/${semesterId}/courses/import-confirm`, data),
 
   // Faculty
   getFaculty: () => get('/admin/faculty'),

@@ -140,17 +140,21 @@ export const AcademicProvider = ({ children }) => {
 
   const addCourse = (semId, course) => {
     const sem = semId || activeSemester;
+    const courseCode = (course.code || '').trim().toUpperCase();
+    const courseTitle = course.name || course.title || 'Untitled Course';
+    const courseId = course.id || courseCode || `c-${Date.now()}`;
+
     setSemesters(prev => {
       const current = prev[sem] || { students: [], courses: [] };
       const newCourse = {
-        id: course.id || course.code || `c-${Date.now()}`,
-        code: course.code,
-        name: course.name || course.title,
-        title: course.name || course.title,
+        id: courseId,
+        code: courseCode,
+        name: courseTitle,
+        title: courseTitle,
         type: course.type || 'Core Theory',
         credits: Number(course.credits) || 4,
         facultyId: course.facultyId || 'FAC01',
-        room: course.room || 'Room 301'
+        room: course.room || course.classroomSlot || 'Room 301'
       };
 
       return {
@@ -162,7 +166,130 @@ export const AcademicProvider = ({ children }) => {
       };
     });
 
-    logAction('Course Configured', `Added course ${course.code} (${course.name}) to Semester ${sem}.`);
+    logAction('Course Configured', `Added course ${courseCode} (${courseTitle}) to Semester ${sem}.`);
+  };
+
+  const updateCourse = (semId, courseId, updatedCourse) => {
+    const sem = semId || activeSemester;
+    const courseCode = (updatedCourse.code || '').trim().toUpperCase();
+    const courseTitle = updatedCourse.name || updatedCourse.title || 'Untitled Course';
+
+    setSemesters(prev => {
+      const current = prev[sem];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [sem]: {
+          ...current,
+          courses: current.courses.map(c => {
+            if (c.id === courseId || c.code === courseId) {
+              return {
+                ...c,
+                ...updatedCourse,
+                code: courseCode || c.code,
+                name: courseTitle,
+                title: courseTitle,
+                type: updatedCourse.type || c.type,
+                credits: Number(updatedCourse.credits) || c.credits,
+                facultyId: updatedCourse.facultyId || c.facultyId,
+                room: updatedCourse.room || updatedCourse.classroomSlot || c.room
+              };
+            }
+            return c;
+          })
+        }
+      };
+    });
+
+    logAction('Course Updated', `Updated course ${courseCode || courseId} in Semester ${sem}.`);
+  };
+
+  const deleteCourse = (semId, courseId) => {
+    const sem = semId || activeSemester;
+    let deletedTitle = courseId;
+    setSemesters(prev => {
+      const current = prev[sem];
+      if (!current) return prev;
+      const target = current.courses.find(c => c.id === courseId || c.code === courseId);
+      if (target) deletedTitle = `${target.code} (${target.name || target.title})`;
+      return {
+        ...prev,
+        [sem]: {
+          ...current,
+          courses: current.courses.filter(c => c.id !== courseId && c.code !== courseId)
+        }
+      };
+    });
+
+    logAction('Course Deleted', `Deleted course ${deletedTitle} from Semester ${sem}.`);
+  };
+
+  const bulkDeleteCourses = (semId, courseIds) => {
+    const sem = semId || activeSemester;
+    const idsSet = new Set(courseIds);
+    setSemesters(prev => {
+      const current = prev[sem];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [sem]: {
+          ...current,
+          courses: current.courses.filter(c => !idsSet.has(c.id) && !idsSet.has(c.code))
+        }
+      };
+    });
+
+    logAction('Bulk Courses Deleted', `Removed ${courseIds.length} courses from Semester ${sem}.`);
+  };
+
+  const importCourses = (semId, coursesList, options = {}) => {
+    const sem = semId || activeSemester;
+    const { overwriteDuplicates = false } = options;
+
+    setSemesters(prev => {
+      const current = prev[sem] || { students: [], courses: [] };
+      let updatedCourses = [...current.courses];
+
+      coursesList.forEach(raw => {
+        const code = (raw.code || raw.courseCode || '').trim().toUpperCase();
+        const title = raw.name || raw.title || raw.courseTitle || 'Untitled Subject';
+        const type = raw.type || raw.courseType || 'Core Theory';
+        const credits = Number(raw.credits) || 4;
+        const facultyId = raw.facultyId || raw.assignedFaculty || 'FAC01';
+        const room = raw.room || raw.classroomSlot || 'Room 301';
+
+        const existingIdx = updatedCourses.findIndex(c => (c.code || '').toUpperCase() === code);
+
+        const newEntry = {
+          id: raw.id || `c-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          code,
+          name: title,
+          title,
+          type,
+          credits,
+          facultyId,
+          room
+        };
+
+        if (existingIdx >= 0) {
+          if (overwriteDuplicates) {
+            updatedCourses[existingIdx] = { ...updatedCourses[existingIdx], ...newEntry };
+          }
+        } else {
+          updatedCourses.push(newEntry);
+        }
+      });
+
+      return {
+        ...prev,
+        [sem]: {
+          ...current,
+          courses: updatedCourses
+        }
+      };
+    });
+
+    logAction('Courses Imported', `Imported ${coursesList.length} subjects into Semester ${sem}.`);
   };
 
   const updateStudentAttendance = (semId, studentId, newAttendance) => {
@@ -1132,6 +1259,10 @@ export const AcademicProvider = ({ children }) => {
         backlogRecords,
         addStudent,
         addCourse,
+        updateCourse,
+        deleteCourse,
+        bulkDeleteCourses,
+        importCourses,
         updateStudentAttendance,
         updateStudentMarks,
         getTimetableForDate,
