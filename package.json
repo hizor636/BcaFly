@@ -2,6 +2,10 @@
   "name": "bcafly-academic-platform",
   "version": "1.0.0",
   "private": true,
+  "allowScripts": {
+    "esbuild": true,
+    "core-js": true
+  },
   "description": "BcaFly — BCA Department Academic Management System with Six Independent Semester Workspaces",
   "scripts": {
     "dev": "npm --prefix academic-management-system/frontend run dev",
