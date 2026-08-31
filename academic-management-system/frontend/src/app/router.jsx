@@ -12,6 +12,7 @@ const AdminTimetablePage = lazy(() => import('../features/admin/pages/AdminTimet
 const AdminAcademicRecordsPage = lazy(() => import('../features/admin/pages/AdminAcademicRecordsPage').then(m => ({ default: m.AdminAcademicRecordsPage })));
 const AdminReportsPage = lazy(() => import('../features/admin/pages/AdminReportsPage').then(m => ({ default: m.AdminReportsPage })));
 const AdminAuditPage = lazy(() => import('../features/admin/pages/AdminAuditPage').then(m => ({ default: m.AdminAuditPage })));
+const AdminDatabaseResetPage = lazy(() => import('../features/admin/pages/AdminDatabaseResetPage').then(m => ({ default: m.AdminDatabaseResetPage })));
 
 // HOD Pages (Lazy Loaded)
 const HodOverviewPage = lazy(() => import('../features/hod/pages/HodOverviewPage').then(m => ({ default: m.HodOverviewPage })));
@@ -95,6 +96,8 @@ export const router = createBrowserRouter([
       
       { path: 'admin/reports', element: <SuspenseWrapper><AdminReportsPage /></SuspenseWrapper> },
       { path: 'admin/audit', element: <SuspenseWrapper><AdminAuditPage /></SuspenseWrapper> },
+      { path: 'admin/database-reset', element: <SuspenseWrapper><AdminDatabaseResetPage /></SuspenseWrapper> },
+      { path: 'admin/settings/database-reset', element: <SuspenseWrapper><AdminDatabaseResetPage /></SuspenseWrapper> },
 
       // HOD Routes
       { path: 'hod/overview', element: <SuspenseWrapper><HodOverviewPage /></SuspenseWrapper> },

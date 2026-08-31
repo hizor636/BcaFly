@@ -531,6 +531,60 @@ export const AcademicProvider = ({ children }) => {
     logAction('Bulk Faculty Allocations Imported', `Imported ${allocationsList.length} faculty allocations into Semester ${sem} (Mode: ${mode}).`);
   };
 
+  const resetAcademicState = (mode, semesterId, academicYearId) => {
+    const safeMode = (mode || 'academic-data').toLowerCase();
+    const sem = semesterId || activeSemester;
+
+    if (safeMode === 'audit-logs') {
+      setAuditLogs([]);
+    } else if (safeMode === 'student-data') {
+      setSemesters(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(k => {
+          next[k] = { ...next[k], students: [] };
+        });
+        return next;
+      });
+      setAssessmentMarks([]);
+      setExamResults([]);
+      setDetailedAttendance({ records: [], correctionRequests: [] });
+    } else if (safeMode === 'semester-data') {
+      setSemesters(prev => ({
+        ...prev,
+        [sem]: {
+          ...prev[sem],
+          students: [],
+          courses: []
+        }
+      }));
+      setFacultyAllocations(prev => prev.filter(a => a.semesterId !== sem));
+      setTimetableEntries(prev => prev.filter(t => t.semesterId !== String(sem)));
+    } else if (safeMode === 'academic-data' || safeMode === 'factory-reset') {
+      setSemesters(prev => {
+        const next = {};
+        Object.keys(prev).forEach(k => {
+          next[k] = { ...prev[k], students: [], courses: [] };
+        });
+        return next;
+      });
+      setAuditLogs([]);
+      setActivities([]);
+      setTimetableEntries([]);
+      setAnnouncements([]);
+      setAssignments([]);
+      setSubmissions([]);
+      setCourseMaterials([]);
+      setDetailedAttendance({ records: [], correctionRequests: [] });
+      setAssessmentMarks([]);
+      setExamResults([]);
+      setFacultyAllocations([]);
+      setStudentRiskCases([]);
+      setBacklogRecords([]);
+    }
+
+    logAction('Database Reset Executed', `Reset mode "${safeMode}" completed for workspace context.`);
+  };
+
   const updateStudentAttendance = (semId, studentId, newAttendance) => {
     const sem = semId || activeSemester;
     setSemesters(prev => {
@@ -1509,6 +1563,7 @@ export const AcademicProvider = ({ children }) => {
         updateFacultyCourseAssignment,
         removeFacultyCourseAssignment,
         importFacultyAssignments,
+        resetAcademicState,
         updateStudentAttendance,
         updateStudentMarks,
         getTimetableForDate,

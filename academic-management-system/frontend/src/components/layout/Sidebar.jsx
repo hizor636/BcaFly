@@ -13,7 +13,8 @@ export const PLATFORM_NAV = {
     { title: 'SEMESTER GOVERNANCE', isHeader: true },
     { path: '/admin/academic-records', label: 'Semester Academic Records', icon: '🗂️' },
     { path: '/admin/reports', label: 'Semester Reports & Exports', icon: '📄' },
-    { path: '/admin/audit', label: 'Immutable Audit Log', icon: '🔒' }
+    { path: '/admin/audit', label: 'Immutable Audit Log', icon: '🔒' },
+    { path: '/admin/database-reset', label: 'Database Reset & Purge', icon: '🗑️' }
   ],
   HOD: [
     { title: 'GOVERNANCE & APPROVALS', isHeader: true },

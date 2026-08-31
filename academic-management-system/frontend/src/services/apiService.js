@@ -222,6 +222,10 @@ export const adminApi = {
   getCalendar: (workspaceId) => get(`/admin/workspaces/${workspaceId}/calendar`),
   uploadCalendar: (workspaceId, data) => post(`/admin/workspaces/${workspaceId}/calendar`, data),
 
+  // Database Reset & Data Clearing
+  getDatabaseResetPreview: (params) => get('/admin/database-reset/preview', params),
+  executeDatabaseReset: (data) => post('/admin/database-reset', data),
+
   // Files
   uploadFile: (formData) => upload('/admin/files', formData),
   deleteFile: (id) => del(`/admin/files/${id}`),
