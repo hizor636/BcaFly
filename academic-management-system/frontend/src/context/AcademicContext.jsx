@@ -95,9 +95,9 @@ export const AcademicProvider = ({ children }) => {
 
   const activeWorkspace = semesters[activeSemester] || semesters[3];
 
-  const logAction = (action, details, actor = 'Dr. A. Sharma', role = 'HOD') => {
+  const logAction = (action, details, actor = 'Administrator', role = 'ADMIN') => {
     const newEntry = {
-      id: `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `AUD-${Date.now()}`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       actor,
       role: role.toUpperCase(),
@@ -113,14 +113,14 @@ export const AcademicProvider = ({ children }) => {
       const current = prev[sem] || { students: [], courses: [] };
       const newStu = {
         id: student.id || `stu-${Date.now()}`,
-        reg: student.reg || student.usn || `1BC24${Math.floor(100 + Math.random() * 900)}`,
-        usn: student.usn || student.reg || `1BC24${Math.floor(100 + Math.random() * 900)}`,
+        reg: student.reg || student.usn || '',
+        usn: student.usn || student.reg || '',
         name: student.name,
         section: student.section || 'A',
-        batch: student.batch || current.batch || '2024–27',
-        attendance: Number(student.attendance) || 90,
-        sgpa: Number(student.sgpa) || 8.5,
-        cgpa: Number(student.cgpa) || 8.5,
+        batch: student.batch || current.batch || '2026–29',
+        attendance: Number(student.attendance) || 0,
+        sgpa: Number(student.sgpa) || 0.0,
+        cgpa: Number(student.cgpa) || 0.0,
         status: 'Active',
         backlogCount: Number(student.backlogCount) || 0,
         resultStatus: Number(student.backlogCount) > 0 ? 'FAIL' : 'PASS'
@@ -135,7 +135,7 @@ export const AcademicProvider = ({ children }) => {
       };
     });
 
-    logAction('Student Enrolled', `Enrolled ${student.name} (${student.reg || 'New'}) into Semester ${sem}.`);
+    logAction('Student Enrolled', `Enrolled ${student.name} (${student.reg || student.usn || 'New'}) into Semester ${sem}.`);
   };
 
   const updateStudent = (semId, studentId, updates) => {
@@ -1086,7 +1086,7 @@ export const AcademicProvider = ({ children }) => {
       if (exp.id === experimentId) {
         const existingSubs = exp.submissions || [];
         const filtered = existingSubs.filter(s => s.studentId !== studentId);
-        const targetStudent = activeWorkspace?.students?.find(s => s.id === studentId) || { name: 'Student', reg: 'BCS23CA001' };
+        const targetStudent = activeWorkspace?.students?.find(s => s.id === studentId) || { name: 'Student', reg: '' };
 
         const updatedSub = {
           studentId,
@@ -1172,8 +1172,8 @@ export const AcademicProvider = ({ children }) => {
     const newSub = {
       id: `sub-${Date.now()}`,
       assignmentId,
-      studentId: studentId || 'student-s3-001',
-      studentName: studentName || 'Rahul Kumar',
+      studentId: studentId || '',
+      studentName: studentName || 'Student',
       submissionText: submissionText || '',
       submissionLinks: submissionLinks || [],
       uploadedFiles: uploadedFiles || [],
@@ -1188,7 +1188,7 @@ export const AcademicProvider = ({ children }) => {
       return [newSub, ...filtered];
     });
 
-    logAction('Assignment Submitted', `${studentName} submitted assignment ${assignmentId}.`, studentName, 'STUDENT');
+    logAction('Assignment Submitted', `${newSub.studentName} submitted assignment ${assignmentId}.`, newSub.studentName, 'STUDENT');
 
     const targetAsg = assignments.find(a => a.id === assignmentId);
     const notif = {
@@ -1209,8 +1209,8 @@ export const AcademicProvider = ({ children }) => {
     const draftSub = {
       id: `sub-draft-${Date.now()}`,
       assignmentId,
-      studentId: studentId || 'student-s3-001',
-      studentName: studentName || 'Rahul Kumar',
+      studentId: studentId || '',
+      studentName: studentName || 'Student',
       submissionText: submissionText || '',
       submissionLinks: submissionLinks || [],
       uploadedFiles: uploadedFiles || [],
@@ -1234,9 +1234,9 @@ export const AcademicProvider = ({ children }) => {
   };
 
   // Student Attendance Correction Request
-  const submitAttendanceCorrection = ({ courseCode, date, period, reason, studentId = 'student-s3-001', studentName = 'Rahul Kumar' }) => {
+  const submitAttendanceCorrection = ({ courseCode, date, period, reason, studentId = '', studentName = 'Student' }) => {
     const newReq = {
-      id: `cr-${Math.floor(100 + Math.random() * 900)}`,
+      id: `cr-${Date.now()}`,
       studentId,
       studentName,
       courseCode,
@@ -1258,7 +1258,7 @@ export const AcademicProvider = ({ children }) => {
   };
 
   // Student Revaluation Request
-  const submitRevaluationRequest = ({ semester, subjectCode, reason, studentId = 'student-s3-001', studentName = 'Rahul Kumar' }) => {
+  const submitRevaluationRequest = ({ semester, subjectCode, reason, studentId = '', studentName = 'Student' }) => {
     logAction('Revaluation Requested', `${studentName} requested challenge revaluation for ${subjectCode} (Sem ${semester}). Reason: ${reason}`, studentName, 'STUDENT');
     const notif = {
       id: `notif-${Date.now()}`,
@@ -1276,11 +1276,11 @@ export const AcademicProvider = ({ children }) => {
   // Activity / OD Claims
   const submitActivity = (activity) => {
     const newAct = {
-      id: `ACT-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `ACT-${Date.now()}`,
       sem: Number(activity.sem) || activeSemester,
-      studentId: activity.studentId || 'student-s3-001',
-      studentName: activity.studentName || 'Rahul Kumar',
-      reg: activity.reg || activity.usn || 'BCS23CA001',
+      studentId: activity.studentId || '',
+      studentName: activity.studentName || 'Student',
+      reg: activity.reg || activity.usn || '',
       title: activity.title,
       org: activity.org,
       location: activity.location || 'Campus / External',
@@ -1291,7 +1291,7 @@ export const AcademicProvider = ({ children }) => {
       status: 'SUBMITTED',
       description: activity.description || '',
       learningOutcome: activity.learningOutcome || '',
-      evidenceFiles: activity.evidenceFiles || ['Certificate_Evidence.pdf'],
+      evidenceFiles: activity.evidenceFiles || [],
       facultyRemarks: '',
       hodRemarks: '',
       attendanceCreditDays: activity.od ? (activity.attendanceCreditDays || 1) : 0,
@@ -1304,30 +1304,30 @@ export const AcademicProvider = ({ children }) => {
     return newAct;
   };
 
-  const verifyActivity = (activityId, status, remarks = '', attendanceCreditDays = 1) => {
+  const verifyActivity = (activityId, status, remarks = '', attendanceCreditDays = 1, facultyActor = 'Faculty') => {
     setActivities(prev => prev.map(a => a.id === activityId ? {
       ...a,
       status,
       facultyRemarks: remarks,
       attendanceCreditDays: Number(attendanceCreditDays)
     } : a));
-    logAction('Activity Verified by Faculty', `Activity ${activityId} decision: ${status}. ${remarks}`, 'Prof. K. Rao', 'FACULTY');
+    logAction('Activity Verified by Faculty', `Activity ${activityId} decision: ${status}. ${remarks}`, facultyActor, 'FACULTY');
   };
 
-  const hodApproveActivity = (activityId, status, remarks = '', attendanceCreditDays = 1) => {
+  const hodApproveActivity = (activityId, status, remarks = '', attendanceCreditDays = 1, hodActor = 'HOD') => {
     setActivities(prev => prev.map(a => a.id === activityId ? {
       ...a,
       status,
       hodRemarks: remarks,
       attendanceCreditDays: Number(attendanceCreditDays)
     } : a));
-    logAction('Activity Approved by HOD', `Activity ${activityId} HOD decision: ${status}. ${remarks}`, 'Dr. A. Sharma', 'HOD');
+    logAction('Activity Approved by HOD', `Activity ${activityId} HOD decision: ${status}. ${remarks}`, hodActor, 'HOD');
   };
 
   // Helpdesk & Ticketing
-  const createHelpdeskTicket = ({ category, subject, description, priority = 'MEDIUM', attachments = [], studentId = 'student-s3-001', studentName = 'Rahul Kumar', reg = 'BCS23CA001' }) => {
+  const createHelpdeskTicket = ({ category, subject, description, priority = 'MEDIUM', attachments = [], studentId = '', studentName = 'Student', reg = '' }) => {
     const newTicket = {
-      id: `TICK-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: `TICK-${Date.now()}`,
       studentId,
       studentName,
       reg,
@@ -1355,7 +1355,7 @@ export const AcademicProvider = ({ children }) => {
     return newTicket;
   };
 
-  const replyHelpdeskTicket = (ticketId, { message, author = 'Rahul Kumar', role = 'STUDENT' }) => {
+  const replyHelpdeskTicket = (ticketId, { message, author = 'Student', role = 'STUDENT' }) => {
     const newReply = {
       id: `rep-${Date.now()}`,
       author,
@@ -1385,9 +1385,9 @@ export const AcademicProvider = ({ children }) => {
   };
 
   // Document Requests
-  const requestDocument = ({ type, purpose, studentId = 'student-s3-001', studentName = 'Rahul Kumar' }) => {
+  const requestDocument = ({ type, purpose, studentId = '', studentName = 'Student' }) => {
     const newDoc = {
-      id: `DOC-${Math.floor(100 + Math.random() * 900)}`,
+      id: `DOC-${Date.now()}`,
       studentId,
       studentName,
       type,

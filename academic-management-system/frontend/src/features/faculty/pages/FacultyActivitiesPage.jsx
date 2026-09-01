@@ -54,28 +54,28 @@ export const FacultyActivitiesPage = () => {
 
       {/* Activity Cards List */}
       <div className="space-y-4">
-        {activities.map((act) => {
-          const isPending = act.status === 'SUBMITTED';
-          const isVerified = act.status === 'FACULTY_RECOMMENDED' || act.status === 'VERIFIED';
-          const isHodApproved = act.status === 'HOD_APPROVED';
-
-          return (
+        {activities.length === 0 ? (
+          <div className="card p-12 text-center text-xs font-mono text-[var(--slate)] bg-white border border-[var(--rule)] rounded-lg">
+            No co-curricular activity or OD verification requests in queue for Semester {activeSemester}.
+          </div>
+        ) : (
+          activities.map((act) => (
             <div
               key={act.id}
               className={`card p-6 bg-white border transition space-y-4 ${
-                isPending ? 'border-amber-300 bg-amber-50/20' : 'border-[var(--rule)]'
+                act.status === 'SUBMITTED' ? 'border-amber-300 bg-amber-50/20' : 'border-[var(--rule)]'
               }`}
             >
               <div className="flex items-start justify-between flex-wrap gap-3 border-b border-[var(--rule)] pb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-mono text-xs font-bold text-[var(--brass-2)] bg-[var(--brass-soft)] px-2.5 py-0.5 rounded border border-[var(--brass)]">
-                      {act.studentName} ({act.reg || 'BCS23CA001'})
+                      {act.studentName} ({act.reg || act.usn || 'Enrolled Student'})
                     </span>
                     <Badge variant={act.category === 'Hackathon' ? 'ink' : 'pass'}>{act.category}</Badge>
                     {act.od && (
                       <span className="bg-amber-100 text-amber-900 font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-amber-300">
-                        ⚡ OD Claim: {act.attendanceCreditDays || 2} Days
+                        ⚡ OD Claim: {act.attendanceCreditDays || 1} Days
                       </span>
                     )}
                   </div>
@@ -88,8 +88,8 @@ export const FacultyActivitiesPage = () => {
                 </div>
 
                 <div className="text-right">
-                  <Badge variant={isHodApproved ? 'pass' : isVerified ? 'amber' : isPending ? 'ink' : 'fail'}>
-                    {isHodApproved ? 'HOD APPROVED ✓' : isVerified ? 'FACULTY RECOMMENDED' : isPending ? 'PENDING FACULTY REVIEW' : act.status}
+                  <Badge variant={act.status === 'HOD_APPROVED' ? 'pass' : act.status === 'FACULTY_RECOMMENDED' || act.status === 'VERIFIED' ? 'amber' : act.status === 'SUBMITTED' ? 'ink' : 'fail'}>
+                    {act.status === 'HOD_APPROVED' ? 'HOD APPROVED ✓' : act.status === 'FACULTY_RECOMMENDED' || act.status === 'VERIFIED' ? 'FACULTY RECOMMENDED' : act.status === 'SUBMITTED' ? 'PENDING FACULTY REVIEW' : act.status}
                   </Badge>
                   <div className="text-[10px] font-mono text-[var(--slate)] mt-1">ID: #{act.id}</div>
                 </div>
@@ -114,11 +114,11 @@ export const FacultyActivitiesPage = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-[var(--slate)]">Evidence File:</span>
                   <span className="bg-[var(--parchment-2)] px-2.5 py-1 rounded border border-[var(--rule)] text-[var(--ink)] font-bold">
-                    📄 {act.evidenceFiles?.[0] || 'Certificate_Evidence.pdf'}
+                    📄 {act.evidenceFiles?.[0] || 'Uploaded Document'}
                   </span>
                 </div>
 
-                {isPending ? (
+                {act.status === 'SUBMITTED' ? (
                   <button
                     onClick={() => {
                       setSelectedActivity(act);
@@ -136,8 +136,8 @@ export const FacultyActivitiesPage = () => {
                 )}
               </div>
             </div>
-          );
-        })}
+          ))
+        )}
       </div>
 
       {/* Verification Modal */}

@@ -39,7 +39,7 @@ export const StudentAttendancePage = () => {
   ]);
 
   const handleOpenCorrection = (courseCode) => {
-    setSelectedCourseForCorrection(courseCode || (summaries[0]?.courseCode || 'BCA304'));
+    setSelectedCourseForCorrection(courseCode || (summaries[0]?.courseCode || ''));
     setCorrectionModalOpen(true);
     setCorrectionSuccess(false);
   };
@@ -53,8 +53,8 @@ export const StudentAttendancePage = () => {
       date: correctionDate,
       period: correctionPeriod,
       reason: correctionReason,
-      studentId: user?.id || 'student-s3-001',
-      studentName: user?.name || 'Rahul Kumar'
+      studentId: user?.id || 'stu-unknown',
+      studentName: user?.name || 'Student'
     });
 
     setCorrectionSuccess(true);
@@ -91,7 +91,7 @@ export const StudentAttendancePage = () => {
           <ExportToolbar
             filename={`bca_attendance_sem${activeSemester}`}
             title={`BCA Semester ${activeSemester} Official Attendance Statement`}
-            subtitle={`Student: ${user?.name || 'Rahul Kumar'} — Overall: ${overallPercentage}%`}
+            subtitle={`Student: ${user?.name || 'Student'} — Overall: ${overallPercentage}%`}
             headers={exportHeaders}
             rows={exportRows}
           />

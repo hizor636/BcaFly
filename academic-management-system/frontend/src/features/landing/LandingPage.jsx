@@ -17,8 +17,8 @@ export const LandingPage = () => {
   const [staffError, setStaffError] = useState('');
 
   const [studentModalOpen, setStudentModalOpen] = useState(false);
-  const [studentName, setStudentName] = useState('Rahul Kumar');
-  const [studentSem, setStudentSem] = useState('3');
+  const [studentName, setStudentName] = useState('');
+  const [studentSem, setStudentSem] = useState('1');
   const [studentError, setStudentError] = useState('');
 
   const openStaffLogin = (role) => {
@@ -207,8 +207,6 @@ export const LandingPage = () => {
             {/* Platform: Student */}
             <button
               onClick={() => {
-                setStudentName('Rahul Kumar');
-                setStudentSem('3');
                 setStudentError('');
                 setStudentModalOpen(true);
               }}
@@ -241,7 +239,7 @@ export const LandingPage = () => {
       >
         <form onSubmit={handleStaffSubmit} className="space-y-4">
           <div className="p-3 bg-[var(--parchment-2)] rounded border border-[var(--rule)] text-xs font-mono text-[var(--slate)]">
-            <span className="font-bold text-[var(--ink)]">Demo Credentials:</span> Username:{' '}
+            <span className="font-bold text-[var(--ink)]">Credentials:</span> Username:{' '}
             <code className="text-[var(--brass-2)] font-bold">{demoHints[pendingStaffRole]?.user}</code> | Password:{' '}
             <code className="text-[var(--brass-2)] font-bold">{demoHints[pendingStaffRole]?.pass}</code>
           </div>
@@ -303,9 +301,7 @@ export const LandingPage = () => {
       >
         <form onSubmit={handleStudentSubmit} className="space-y-4">
           <div className="p-3 bg-[var(--parchment-2)] rounded border border-[var(--rule)] text-xs font-mono text-[var(--slate)]">
-            <span className="font-bold text-[var(--ink)]">Demo Student:</span> Enter{' '}
-            <code className="text-[var(--brass-2)] font-bold">Rahul Kumar</code> (Sem 3) or{' '}
-            <code className="text-[var(--brass-2)] font-bold">Ananya Sharma</code> (Sem 1).
+            <span className="font-bold text-[var(--ink)]">Student Login:</span> Enter your registered student name or register number to access your workspace.
           </div>
 
           {studentError && (
@@ -315,14 +311,14 @@ export const LandingPage = () => {
           )}
 
           <div>
-            <label className="block text-xs font-mono font-bold text-[var(--ink)] mb-1">Registered Student Name:</label>
+            <label className="block text-xs font-mono font-bold text-[var(--ink)] mb-1">Registered Student Name / USN:</label>
             <input
               type="text"
               required
               value={studentName}
               onChange={(e) => setStudentName(e.target.value)}
               className="field-input text-xs"
-              placeholder="e.g. Rahul Kumar"
+              placeholder="Enter student name or USN"
             />
           </div>
 

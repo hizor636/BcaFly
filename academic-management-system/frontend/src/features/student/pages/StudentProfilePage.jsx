@@ -16,29 +16,25 @@ export const StudentProfilePage = () => {
   const [idCardModalOpen, setIdCardModalOpen] = useState(false);
 
   const student = {
-    name: user?.name || 'Rahul Kumar',
-    reg: user?.usn || 'BCS23CA001',
-    usn: user?.usn || 'BCS23CA001',
-    dob: '2005-04-14',
-    bloodGroup: 'O+ve',
-    email: 'rahul.kumar@bcafly.edu',
-    phone: '+91 98765 43210',
-    emergencyContact: '+91 98765 43211 (Father)',
-    fatherName: 'Mr. S. Kumar',
-    motherName: 'Mrs. P. Devi',
-    address: '#142, 4th Cross, Green Glen Layout, Bangalore - 560103',
+    name: user?.name || 'Enrolled Student',
+    reg: user?.usn || user?.reg || 'Unassigned',
+    usn: user?.usn || user?.reg || 'Unassigned',
+    dob: user?.dob || '—',
+    bloodGroup: user?.bloodGroup || '—',
+    email: user?.email || '—',
+    phone: user?.phone || '—',
+    emergencyContact: user?.emergencyContact || '—',
+    fatherName: user?.fatherName || '—',
+    motherName: user?.motherName || '—',
+    address: user?.address || '—',
     semester: activeSemester,
-    section: 'A',
-    batch: '2024–2027',
+    section: user?.section || 'A',
+    batch: user?.batch || '2026–2029',
     program: 'Bachelor of Computer Applications (BCA)',
     institution: 'BcaFly Institute of Computer Applications'
   };
 
-  const feeReceipts = [
-    { id: 'FEE-2025-01', term: 'Semester 3 Tuition & Lab Fee', amount: '₹ 45,000', date: '2025-07-15', status: 'PAID', mode: 'Online UPI' },
-    { id: 'FEE-2024-02', term: 'Semester 2 Tuition & Exam Fee', amount: '₹ 42,500', date: '2025-01-10', status: 'PAID', mode: 'NetBanking' },
-    { id: 'FEE-2024-01', term: 'Semester 1 Admission & Tuition Fee', amount: '₹ 50,000', date: '2024-08-01', status: 'PAID', mode: 'Demand Draft' }
-  ];
+  const feeReceipts = user?.feeReceipts || [];
 
   const handleDocSubmit = (e) => {
     e.preventDefault();
@@ -47,7 +43,7 @@ export const StudentProfilePage = () => {
     requestDocument({
       type: docType,
       purpose: docPurpose,
-      studentId: user?.id || 'student-s3-001',
+      studentId: user?.id || 'stu-unknown',
       studentName: student.name
     });
 

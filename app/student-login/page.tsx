@@ -67,7 +67,7 @@ export default function StudentLoginPage() {
             <input
               id="name"
               type="text"
-              placeholder="Enter full registered name (e.g. Rahul Kumar)"
+              placeholder="Enter full registered name"
               value={name}
               onChange={(event) => setName(event.target.value)}
               autoComplete="name"

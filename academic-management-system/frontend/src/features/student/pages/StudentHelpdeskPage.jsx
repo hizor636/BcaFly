@@ -36,12 +36,12 @@ export const StudentHelpdeskPage = () => {
   // Reply state
   const [replyText, setReplyText] = useState('');
 
-  const currentStudentId = user?.id || 'student-s3-001';
-  const currentStudentName = user?.name || 'Rahul Kumar';
-  const currentStudentReg = user?.usn || 'BCS23CA001';
+  const currentStudentId = user?.id || '';
+  const currentStudentName = user?.name || 'Student';
+  const currentStudentReg = user?.usn || user?.reg || 'Unassigned';
 
   const myTickets = helpdeskTickets.filter(
-    t => t.studentName?.toLowerCase() === currentStudentName.toLowerCase() || t.studentId === currentStudentId
+    t => (currentStudentName && t.studentName?.toLowerCase() === currentStudentName.toLowerCase()) || (currentStudentId && t.studentId === currentStudentId)
   );
 
   const filteredTickets = myTickets.filter(t => {

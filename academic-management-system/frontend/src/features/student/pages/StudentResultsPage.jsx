@@ -12,14 +12,14 @@ export const StudentResultsPage = () => {
   const { activeSemester, examResults, submitRevaluationRequest } = useAcademic();
   const { user } = useAuth();
 
-  const [selectedSemester, setSelectedSemester] = useState(3);
+  const [selectedSemester, setSelectedSemester] = useState(activeSemester || 1);
   const [revalModalOpen, setRevalModalOpen] = useState(false);
   const [selectedSubjectCode, setSelectedSubjectCode] = useState('');
   const [revalReason, setRevalReason] = useState('');
   const [revalSuccess, setRevalSuccess] = useState(false);
 
   const history = examResults?.history || [];
-  const currentSemRecord = history.find(h => h.semester === selectedSemester) || history[history.length - 1];
+  const currentSemRecord = history.find(h => h.semester === selectedSemester) || null;
   const subjects = currentSemRecord?.subjects || [];
 
   const exportHeaders = ['Subject Code', 'Subject Name', 'Credits', 'Internal (50)', 'External (50)', 'Total (100)', 'Letter Grade', 'Grade Point', 'Result'];
@@ -37,6 +37,11 @@ export const StudentResultsPage = () => {
 
   // Official PDF Marks Card Generator using jsPDF & autotable
   const handleDownloadOfficialPDF = () => {
+    if (!currentSemRecord) {
+      alert("No published result record found for the selected semester.");
+      return;
+    }
+
     const doc = new jsPDF();
 
     // College Header Banner
@@ -59,13 +64,13 @@ export const StudentResultsPage = () => {
     doc.setTextColor(27, 42, 74);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text(`STUDENT NAME: ${user?.name || 'RAHUL KUMAR'}`, 14, 48);
-    doc.text(`REGISTER / USN: ${user?.usn || 'BCS23CA001'}`, 14, 55);
+    doc.text(`STUDENT NAME: ${(user?.name || 'STUDENT').toUpperCase()}`, 14, 48);
+    doc.text(`REGISTER / USN: ${(user?.usn || user?.reg || 'UNASSIGNED').toUpperCase()}`, 14, 55);
     doc.text(`SEMESTER: SEMESTER ${selectedSemester}`, 14, 62);
 
     doc.text(`DEGREE: BACHELOR OF COMPUTER APPLICATIONS (BCA)`, 120, 48);
-    doc.text(`ACADEMIC TERM: ${currentSemRecord.term}`, 120, 55);
-    doc.text(`EXAMINATION STATUS: ${currentSemRecord.resultStatus} (${currentSemRecord.remarks})`, 120, 62);
+    doc.text(`ACADEMIC TERM: ${currentSemRecord.term || 'Current Academic Term'}`, 120, 55);
+    doc.text(`EXAMINATION STATUS: ${currentSemRecord.resultStatus || 'PENDING'} (${currentSemRecord.remarks || '—'})`, 120, 62);
 
     // Marks Table
     const tableData = subjects.map(s => [
@@ -100,7 +105,7 @@ export const StudentResultsPage = () => {
       }
     });
 
-    const finalY = doc.lastAutoTable.finalY + 8;
+    const finalY = (doc.lastAutoTable?.finalY || 100) + 8;
 
     // Summary Box
     doc.setFillColor(247, 244, 236);
@@ -111,9 +116,9 @@ export const StudentResultsPage = () => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(27, 42, 74);
-    doc.text(`SEMESTER SGPA: ${currentSemRecord.sgpa.toFixed(2)}`, 20, finalY + 9);
-    doc.text(`CUMULATIVE CGPA: ${examResults.cgpa.toFixed(2)}`, 85, finalY + 9);
-    doc.text(`CREDITS EARNED: ${currentSemRecord.creditsEarned} / ${currentSemRecord.totalCredits}`, 145, finalY + 9);
+    doc.text(`SEMESTER SGPA: ${(currentSemRecord.sgpa || 0).toFixed(2)}`, 20, finalY + 9);
+    doc.text(`CUMULATIVE CGPA: ${(examResults?.cgpa || 0).toFixed(2)}`, 85, finalY + 9);
+    doc.text(`CREDITS EARNED: ${currentSemRecord.creditsEarned || 0} / ${currentSemRecord.totalCredits || 0}`, 145, finalY + 9);
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
@@ -129,11 +134,11 @@ export const StudentResultsPage = () => {
     doc.text('Head of Department (BCA)', 95, sigY);
     doc.text('Controller of Examinations', 155, sigY);
 
-    doc.save(`BCA_Marks_Card_Sem${selectedSemester}_${user?.usn || 'BCS23CA001'}.pdf`);
+    doc.save(`BCA_Marks_Card_Sem${selectedSemester}_${user?.usn || user?.reg || 'Student'}.pdf`);
   };
 
   const handleOpenReval = (subCode) => {
-    setSelectedSubjectCode(subCode || (subjects[0]?.code || 'BCA301'));
+    setSelectedSubjectCode(subCode || (subjects[0]?.code || ''));
     setRevalModalOpen(true);
     setRevalSuccess(false);
   };
@@ -146,8 +151,8 @@ export const StudentResultsPage = () => {
       semester: selectedSemester,
       subjectCode: selectedSubjectCode,
       reason: revalReason,
-      studentId: user?.id || 'student-s3-001',
-      studentName: user?.name || 'Rahul Kumar'
+      studentId: user?.id || 'stu-unknown',
+      studentName: user?.name || 'Student'
     });
 
     setRevalSuccess(true);
@@ -184,7 +189,7 @@ export const StudentResultsPage = () => {
           <ExportToolbar
             filename={`bca_grades_sem${selectedSemester}`}
             title={`BCA Semester ${selectedSemester} Grade Statement`}
-            subtitle={`Student: ${user?.name || 'Rahul Kumar'} — SGPA: ${currentSemRecord?.sgpa}`}
+            subtitle={`Student: ${user?.name || 'Student'} — SGPA: ${currentSemRecord?.sgpa ?? 'N/A'}`}
             headers={exportHeaders}
             rows={exportRows}
           />
@@ -196,8 +201,8 @@ export const StudentResultsPage = () => {
         <div className="lg:col-span-8 card p-4 bg-white flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2 font-mono text-xs font-bold text-[var(--slate)]">
             <span>SELECT SEMESTER:</span>
-            <div className="flex items-center gap-1.5">
-              {[1, 2, 3].map(sem => (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[1, 2, 3, 4, 5, 6].map(sem => (
                 <button
                   key={sem}
                   onClick={() => setSelectedSemester(sem)}
@@ -214,55 +219,57 @@ export const StudentResultsPage = () => {
           </div>
 
           <div className="text-xs font-mono text-[var(--slate)]">
-            Term: <strong className="text-[var(--ink)]">{currentSemRecord?.term}</strong>
+            Term: <strong className="text-[var(--ink)]">{currentSemRecord?.term || `Semester ${selectedSemester}`}</strong>
           </div>
         </div>
 
         <div className="lg:col-span-4 card p-4 bg-white flex items-center justify-between font-mono text-xs">
           <div>
             <span className="text-[var(--slate)] block text-[10px]">CUMULATIVE CGPA:</span>
-            <span className="text-xl font-bold text-[var(--brass-2)]">{examResults.cgpa.toFixed(2)}</span>
+            <span className="text-xl font-bold text-[var(--brass-2)]">{(examResults?.cgpa || 0).toFixed(2)}</span>
           </div>
           <div>
             <span className="text-[var(--slate)] block text-[10px]">TOTAL CREDITS:</span>
-            <span className="text-sm font-bold text-[var(--ink)]">{examResults.totalCreditsEarned} Credits</span>
+            <span className="text-sm font-bold text-[var(--ink)]">{examResults?.totalCreditsEarned || 0} Credits</span>
           </div>
           <div>
             <span className="text-[var(--slate)] block text-[10px]">ARREARS:</span>
-            <Badge variant={examResults.arrearCount === 0 ? 'pass' : 'fail'}>
-              {examResults.arrearCount === 0 ? 'ZERO (CLEAR)' : `${examResults.arrearCount} Backlogs`}
+            <Badge variant={examResults?.arrearCount === 0 ? 'pass' : 'fail'}>
+              {examResults?.arrearCount === 0 ? 'ZERO (CLEAR)' : `${examResults?.arrearCount} Backlogs`}
             </Badge>
           </div>
         </div>
       </div>
 
       {/* Semester Results Summary Box */}
-      <div className="p-4 bg-[var(--parchment-2)] border border-[var(--rule)] rounded-lg flex items-center justify-between flex-wrap gap-4 font-mono text-xs">
-        <div className="flex items-center gap-6 flex-wrap">
-          <div>
-            <span className="text-[var(--slate)]">SEMESTER SGPA:</span>{' '}
-            <span className="font-bold text-base text-[var(--ink)]">{currentSemRecord.sgpa.toFixed(2)}</span>
+      {currentSemRecord ? (
+        <div className="p-4 bg-[var(--parchment-2)] border border-[var(--rule)] rounded-lg flex items-center justify-between flex-wrap gap-4 font-mono text-xs">
+          <div className="flex items-center gap-6 flex-wrap">
+            <div>
+              <span className="text-[var(--slate)]">SEMESTER SGPA:</span>{' '}
+              <span className="font-bold text-base text-[var(--ink)]">{(currentSemRecord.sgpa || 0).toFixed(2)}</span>
+            </div>
+            <div>
+              <span className="text-[var(--slate)]">CREDITS EARNED:</span>{' '}
+              <span className="font-bold text-base text-[var(--brass-2)]">{currentSemRecord.creditsEarned || 0} / {currentSemRecord.totalCredits || 0}</span>
+            </div>
+            <div>
+              <span className="text-[var(--slate)]">RESULT:</span>{' '}
+              <span className="font-bold text-base text-emerald-800">{currentSemRecord.resultStatus || 'PASS'}</span>
+            </div>
           </div>
-          <div>
-            <span className="text-[var(--slate)]">CREDITS EARNED:</span>{' '}
-            <span className="font-bold text-base text-[var(--brass-2)]">{currentSemRecord.creditsEarned} / {currentSemRecord.totalCredits}</span>
-          </div>
-          <div>
-            <span className="text-[var(--slate)]">RESULT:</span>{' '}
-            <span className="font-bold text-base text-emerald-800">{currentSemRecord.resultStatus}</span>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <Badge variant="pass">{currentSemRecord.remarks}</Badge>
-          <button
-            onClick={() => handleOpenReval('')}
-            className="px-3 py-1 bg-white border border-[var(--rule)] hover:border-[var(--brass)] rounded font-bold text-[var(--ink)] hover:text-[var(--brass-2)] transition cursor-pointer"
-          >
-            Apply for Revaluation 📝
-          </button>
+          <div className="flex items-center gap-3">
+            {currentSemRecord.remarks && <Badge variant="pass">{currentSemRecord.remarks}</Badge>}
+            <button
+              onClick={() => handleOpenReval('')}
+              className="px-3 py-1 bg-white border border-[var(--rule)] hover:border-[var(--brass)] rounded font-bold text-[var(--ink)] hover:text-[var(--brass-2)] transition cursor-pointer"
+            >
+              Apply for Revaluation 📝
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* Grade Ledger Table */}
       <div className="card p-5 bg-white">
@@ -270,7 +277,9 @@ export const StudentResultsPage = () => {
           <h4 className="font-display font-bold text-base text-[var(--ink)]">
             Semester {selectedSemester} Official Subject Scores &amp; Letter Grades
           </h4>
-          <span className="font-mono text-xs text-[var(--slate)]">Published: {currentSemRecord.publishedAt}</span>
+          <span className="font-mono text-xs text-[var(--slate)]">
+            {currentSemRecord?.publishedAt ? `Published: ${currentSemRecord.publishedAt}` : 'No publication record'}
+          </span>
         </div>
 
         <LedgerTable
@@ -310,31 +319,34 @@ export const StudentResultsPage = () => {
             }
           ]}
           data={subjects}
+          emptyMessage={`No published exam results found for Semester ${selectedSemester}.`}
         />
       </div>
 
       {/* Multi-Semester SGPA Progression Table */}
-      <div className="card p-5 bg-white">
-        <h4 className="font-display font-bold text-base text-[var(--ink)] mb-3 border-b border-[var(--rule)] pb-2">
-          Academic Progression &amp; Semester History
-        </h4>
+      {history.length > 0 && (
+        <div className="card p-5 bg-white">
+          <h4 className="font-display font-bold text-base text-[var(--ink)] mb-3 border-b border-[var(--rule)] pb-2">
+            Academic Progression &amp; Semester History
+          </h4>
 
-        <div className="grid sm:grid-cols-3 gap-4">
-          {history.map(item => (
-            <div key={item.semester} className={`p-4 rounded-lg border ${item.semester === selectedSemester ? 'bg-[var(--parchment)] border-[var(--brass)] shadow-2xs' : 'bg-white border-[var(--rule)]'}`}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-mono text-xs font-bold text-[var(--ink)]">Semester {item.semester}</span>
-                <Badge variant="pass">SGPA: {item.sgpa.toFixed(2)}</Badge>
+          <div className="grid sm:grid-cols-3 gap-4">
+            {history.map(item => (
+              <div key={item.semester} className={`p-4 rounded-lg border ${item.semester === selectedSemester ? 'bg-[var(--parchment)] border-[var(--brass)] shadow-2xs' : 'bg-white border-[var(--rule)]'}`}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-mono text-xs font-bold text-[var(--ink)]">Semester {item.semester}</span>
+                  <Badge variant="pass">SGPA: {(item.sgpa || 0).toFixed(2)}</Badge>
+                </div>
+                <p className="text-xs font-mono text-[var(--slate)]">{item.term}</p>
+                <div className="mt-2 pt-2 border-t border-[var(--rule)] text-[11px] font-mono text-[var(--slate)] flex justify-between">
+                  <span>Credits: {item.creditsEarned}</span>
+                  <span className="text-emerald-800 font-bold">{item.remarks}</span>
+                </div>
               </div>
-              <p className="text-xs font-mono text-[var(--slate)]">{item.term}</p>
-              <div className="mt-2 pt-2 border-t border-[var(--rule)] text-[11px] font-mono text-[var(--slate)] flex justify-between">
-                <span>Credits: {item.creditsEarned}</span>
-                <span className="text-emerald-800 font-bold">{item.remarks}</span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Revaluation Request Modal */}
       {revalModalOpen && (
@@ -348,56 +360,50 @@ export const StudentResultsPage = () => {
               ✓ Revaluation application submitted to Controller of Examinations!
             </div>
           ) : (
-            <form onSubmit={handleRevalSubmit} className="space-y-4 font-sans text-xs">
-              <p className="text-xs text-[var(--slate)] font-mono">
-                Submit an official challenge revaluation request for Semester {selectedSemester} examination scripts.
-              </p>
-
+            <form onSubmit={handleRevalSubmit} className="space-y-4 text-xs font-mono">
               <div>
-                <label className="block font-mono font-bold text-[var(--ink)] mb-1">Select Subject for Revaluation:</label>
+                <label className="block text-[var(--slate)] font-bold mb-1">SELECT COURSE / SUBJECT:</label>
                 <select
                   value={selectedSubjectCode}
                   onChange={(e) => setSelectedSubjectCode(e.target.value)}
-                  className="field-input text-xs"
+                  className="field-input py-2 text-xs"
                   required
                 >
+                  <option value="">Select subject for revaluation</option>
                   {subjects.map(s => (
                     <option key={s.code} value={s.code}>
-                      {s.code} - {s.name} (Obtained: {s.total}/100, Grade: {s.grade})
+                      {s.code} - {s.name} (Current Grade: {s.grade})
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block font-mono font-bold text-[var(--ink)] mb-1">Reason for Revaluation Appeal:</label>
+                <label className="block text-[var(--slate)] font-bold mb-1">REASON / JUSTIFICATION FOR REVALUATION:</label>
                 <textarea
-                  rows={3}
-                  required
                   value={revalReason}
                   onChange={(e) => setRevalReason(e.target.value)}
-                  placeholder="Specify question numbers or total verification discrepancies..."
-                  className="field-input text-xs"
+                  rows={3}
+                  placeholder="Detail discrepancies in internal/external mark tabulation or request photocopied answer script verification..."
+                  className="field-input py-2 text-xs"
+                  required
                 />
               </div>
 
-              <div className="p-3 bg-[var(--parchment-2)] border border-[var(--rule)] rounded font-mono text-[11px] text-[var(--slate)]">
-                Note: Standard challenge revaluation fee of ₹500/paper will be adjusted in your department fee account upon confirmation.
+              <div className="p-3 bg-[var(--parchment-2)] border border-[var(--rule)] rounded text-[11px] text-[var(--slate)]">
+                Note: Standard challenge revaluation fee of ₹500/paper applies upon administrative verification.
               </div>
 
-              <div className="pt-3 border-t border-[var(--rule)] flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setRevalModalOpen(false)}
-                  className="px-3 py-2 rounded text-xs font-mono text-[var(--slate)]"
+                  className="btn-ghost border border-[var(--rule)] px-3 py-1.5 rounded"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="btn-brass px-4 py-2 rounded text-xs font-mono font-bold shadow-xs cursor-pointer"
-                >
-                  Submit Revaluation Request →
+                <button type="submit" className="btn-brass px-4 py-1.5 rounded font-bold">
+                  Submit Revaluation Request
                 </button>
               </div>
             </form>

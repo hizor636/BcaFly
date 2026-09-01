@@ -20,11 +20,11 @@ export const StudentAssignmentsPage = () => {
   const [feedbackMessage, setFeedbackMessage] = useState(null);
 
   const courses = activeWorkspace?.courses || [];
-  const currentStudentId = user?.id || 'student-s3-001';
-  const currentStudentName = user?.name || 'Rahul Kumar';
+  const currentStudentId = user?.id || '';
+  const currentStudentName = user?.name || 'Student';
 
   const getSubmissionForAssignment = (asgId) => {
-    return submissions.find(s => s.assignmentId === asgId && (s.studentId === currentStudentId || s.studentId === 'student-s3-001'));
+    return submissions.find(s => s.assignmentId === asgId && (currentStudentId ? s.studentId === currentStudentId : true));
   };
 
   const handleOpenSubmission = (asg) => {

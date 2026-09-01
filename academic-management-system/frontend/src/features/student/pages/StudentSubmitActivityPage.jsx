@@ -34,10 +34,10 @@ export const StudentSubmitActivityPage = () => {
     submitActivity({
       ...formData,
       sem: activeSemester,
-      studentId: user?.id || 'student-s3-001',
-      studentName: user?.name || 'Rahul Kumar',
-      reg: user?.usn || 'BCS23CA001',
-      evidenceFiles: formData.evidenceFiles.length > 0 ? formData.evidenceFiles : ['Participation_Certificate.pdf']
+      studentId: user?.id || 'stu-unknown',
+      studentName: user?.name || 'Student',
+      reg: user?.usn || user?.reg || 'Unassigned',
+      evidenceFiles: formData.evidenceFiles
     });
 
     setSubmittedSuccess(true);
@@ -59,7 +59,7 @@ export const StudentSubmitActivityPage = () => {
   };
 
   const myActivities = activities.filter(
-    a => a.studentName?.toLowerCase() === (user?.name || 'rahul kumar').toLowerCase() || a.studentId === (user?.id || 'student-s3-001')
+    a => (user?.name && a.studentName?.toLowerCase() === user.name.toLowerCase()) || (user?.id && a.studentId === user.id)
   );
 
   return (

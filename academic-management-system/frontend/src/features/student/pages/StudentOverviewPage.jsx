@@ -27,30 +27,29 @@ export const StudentOverviewPage = () => {
 
   // Current student object matching user
   const currentStudent = students.find(
-    s => s.name?.toLowerCase() === (user?.name || 'rahul kumar').toLowerCase() || s.reg === user?.usn || s.id === user?.id
-  ) || students[0] || {
-    name: user?.name || 'Rahul Kumar',
-    reg: user?.usn || 'BCS23CA001',
-    attendance: 88,
-    sgpa: 8.85,
-    cgpa: 8.92,
-    section: 'A',
-    batch: '2024–27',
-    resultStatus: 'PASS'
+    s => (user?.name && s.name?.toLowerCase() === user.name.toLowerCase()) || (user?.usn && (s.reg === user.usn || s.usn === user.usn)) || (user?.id && s.id === user.id)
+  ) || {
+    name: user?.name || 'Student',
+    reg: user?.usn || user?.reg || 'Unassigned',
+    attendance: 0,
+    sgpa: 0.0,
+    cgpa: 0.0,
+    section: user?.section || 'A',
+    batch: activeWorkspace?.batch || '2026–29',
+    resultStatus: 'PENDING'
   };
 
   // Compute Today's classes from Timetable
   const dayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
   const todayDayName = dayNames[new Date().getDay()] || 'MONDAY';
-  // Default to MONDAY or WEDNESDAY schedule if Sunday/Saturday for demo purposes
   const effectiveDay = todayDayName === 'SUNDAY' ? 'MONDAY' : todayDayName;
   const todaysClasses = timetableEntries.filter(
-    t => t.dayOfWeek === effectiveDay && (!t.semesterId || t.semesterId === String(activeSemester))
+    t => t.dayOfWeek === effectiveDay && (!t.semesterId || String(t.semesterId) === String(activeSemester))
   );
 
   // Check pending assignments
   const pendingAssignments = assignments.filter(asg => {
-    const sub = submissions.find(s => s.assignmentId === asg.id && (s.studentId === currentStudent.id || s.studentId === 'student-s3-001'));
+    const sub = submissions.find(s => s.assignmentId === asg.id && s.studentId === currentStudent.id);
     return !sub || sub.status === 'DRAFT';
   });
 
@@ -58,14 +57,14 @@ export const StudentOverviewPage = () => {
   const unreadAnnouncements = announcements.filter(a => !a.isRead);
 
   // Shortage risk courses (< 75%)
-  const riskCourses = (detailedAttendance?.summary || []).filter(s => s.attendancePercentage < 75);
+  const riskCourses = (detailedAttendance?.summary || []).filter(s => Number(s.attendancePercentage) < 75);
 
   // Open Helpdesk tickets
   const openTickets = helpdeskTickets.filter(t => t.status === 'OPEN' || t.status === 'IN_PROGRESS');
 
   // Activities
   const myActivities = activities.filter(
-    a => a.studentName?.toLowerCase() === currentStudent.name.toLowerCase() || a.studentId === currentStudent.id || a.studentId === 'student-s3-001'
+    a => (currentStudent.name && a.studentName?.toLowerCase() === currentStudent.name.toLowerCase()) || (currentStudent.id && a.studentId === currentStudent.id)
   );
 
   return (

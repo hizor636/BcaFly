@@ -20,7 +20,7 @@ export const FacultyAssignmentsPage = () => {
   const [actionSuccess, setActionSuccess] = useState(null);
 
   // Create Assignment Form State
-  const [courseCode, setCourseCode] = useState('BCA302');
+  const [courseCode, setCourseCode] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [instructions, setInstructions] = useState('');
@@ -34,7 +34,7 @@ export const FacultyAssignmentsPage = () => {
     if (!title.trim() || !description.trim()) return;
 
     const created = createAssignment({
-      courseCode,
+      courseCode: courseCode || (courses[0]?.code || 'CORE'),
       title,
       description,
       instructions,
@@ -42,7 +42,7 @@ export const FacultyAssignmentsPage = () => {
       dueAt: new Date(dueAt).toISOString(),
       allowLate,
       allowResubmission,
-      createdBy: user?.name || 'Prof. K. Rao'
+      createdBy: user?.name || 'Course Instructor'
     });
 
     setCreateModalOpen(false);
@@ -79,7 +79,7 @@ export const FacultyAssignmentsPage = () => {
 
   const assignmentSubmissions = selectedAssignment
     ? students.map(s => {
-        const sub = submissions.find(sub => sub.assignmentId === selectedAssignment.id && (sub.studentId === s.id || (s.id === '301' && sub.studentId === 'student-s3-001')));
+        const sub = submissions.find(sub => sub.assignmentId === selectedAssignment.id && (sub.studentId === s.id || (s.reg && sub.reg === s.reg)));
         return {
           studentId: s.id,
           studentName: s.name,

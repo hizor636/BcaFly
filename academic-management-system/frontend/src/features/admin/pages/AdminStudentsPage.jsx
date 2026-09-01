@@ -885,7 +885,7 @@ export const AdminStudentsPage = () => {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Rahul Kumar"
+                placeholder="Enter full student name"
                 className="field-input text-xs"
               />
             </div>
@@ -896,7 +896,7 @@ export const AdminStudentsPage = () => {
                 type="text"
                 value={formData.reg}
                 onChange={(e) => setFormData({ ...formData, reg: e.target.value })}
-                placeholder="e.g. 1BC24009 (Auto-generated if blank)"
+                placeholder="Enter Register Number / USN"
                 className="field-input text-xs font-mono"
               />
             </div>

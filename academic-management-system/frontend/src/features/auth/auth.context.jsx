@@ -6,27 +6,27 @@ export const AuthContext = createContext(null);
 const DEFAULT_USERS = {
   admin: {
     id: 'usr-admin-1',
-    name: 'Dr. A. Sharma',
+    name: 'Dr. B. K. Sharma',
     email: 'admin@bcafly.edu',
     role: 'ADMIN',
     roleLabel: 'Administrator',
-    semester: 3
+    semester: 1
   },
   hod: {
     id: 'usr-hod-1',
-    name: 'Dr. A. Sharma',
+    name: 'Dr. Ananya Rao',
     email: 'hod@bcafly.edu',
     role: 'HOD',
     roleLabel: 'Head of Department',
-    semester: 3
+    semester: 1
   },
   faculty: {
-    id: 'FAC02',
-    name: 'Prof. K. Rao',
-    email: 'rao@bcafly.edu',
+    id: 'FAC03',
+    name: 'Prof. Rahul Nair',
+    email: 'rahul@bcafly.edu',
     role: 'FACULTY',
     roleLabel: 'Associate Professor',
-    semester: 3
+    semester: 1
   }
 };
 
@@ -36,12 +36,12 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const savedSession = localStorage.getItem('bcafly_session');
+      const savedSession = localStorage.getItem('bcafly_session_v4');
       if (savedSession) {
         try {
           setUser(JSON.parse(savedSession));
         } catch (e) {
-          localStorage.removeItem('bcafly_session');
+          localStorage.removeItem('bcafly_session_v4');
         }
       } else {
         const token = localStorage.getItem('token');
@@ -73,39 +73,34 @@ export const AuthProvider = ({ children }) => {
     }
 
     const userData = target.profile;
-    localStorage.setItem('bcafly_session', JSON.stringify(userData));
+    localStorage.setItem('bcafly_session_v4', JSON.stringify(userData));
     localStorage.setItem('token', `mock-token-${userData.role}`);
     setUser(userData);
     return userData;
   };
 
-  const loginStudent = async (studentName, semester, allStudents = []) => {
-    const cleanName = studentName.trim().toLowerCase();
-    const semNum = Number(semester);
+  const loginStudent = async (studentIdentifier, semester, allStudents = []) => {
+    const cleanQuery = studentIdentifier.trim().toLowerCase();
+    const semNum = Number(semester) || 1;
 
     const found = allStudents.find(
-      s => s.name.trim().toLowerCase() === cleanName && (Number(s.semester || s.sem) === semNum || semNum === 3)
-    ) || {
-      id: 'student-s3-001',
-      name: studentName,
-      usn: 'BCS23CA001',
-      reg: 'BCS23CA001',
-      semester: semNum || 3,
-      section: 'A'
-    };
+      s => (s.name && s.name.trim().toLowerCase() === cleanQuery) ||
+           (s.reg && s.reg.trim().toLowerCase() === cleanQuery) ||
+           (s.usn && s.usn.trim().toLowerCase() === cleanQuery)
+    );
 
     const userData = {
-      id: found.id || `stu-${Date.now()}`,
-      name: found.name || studentName,
-      usn: found.usn || found.reg || 'BCS23CA001',
-      reg: found.reg || found.usn || 'BCS23CA001',
+      id: found ? found.id : `stu-${Date.now()}`,
+      name: found ? found.name : studentIdentifier,
+      usn: found ? (found.usn || found.reg) : studentIdentifier,
+      reg: found ? (found.reg || found.usn) : studentIdentifier,
       role: 'STUDENT',
       roleLabel: 'Enrolled Student',
-      semester: semNum || 3,
-      section: found.section || 'A'
+      semester: found ? (Number(found.semester || found.sem) || semNum) : semNum,
+      section: found ? (found.section || 'A') : 'A'
     };
 
-    localStorage.setItem('bcafly_session', JSON.stringify(userData));
+    localStorage.setItem('bcafly_session_v4', JSON.stringify(userData));
     localStorage.setItem('token', 'mock-token-STUDENT');
     setUser(userData);
     return userData;
@@ -115,7 +110,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await apiClient.post('/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
-      localStorage.setItem('bcafly_session', JSON.stringify(res.data));
+      localStorage.setItem('bcafly_session_v4', JSON.stringify(res.data));
       setUser(res.data);
       return res.data;
     } catch (error) {
@@ -129,6 +124,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('bcafly_session_v4');
     localStorage.removeItem('bcafly_session');
     setUser(null);
   };
