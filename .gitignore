@@ -36,6 +36,8 @@ logs/
 *.sql
 *.db
 *.sqlite
+!database/**
+!academic-management-system/backend/src/main/resources/db/migration/**
 
 # Secrets, Keys, and Credentials
 *.pem
