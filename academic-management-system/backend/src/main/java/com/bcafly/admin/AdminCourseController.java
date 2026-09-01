@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class AdminCourseController {
 
     private final SubjectRepository subjectRepository;

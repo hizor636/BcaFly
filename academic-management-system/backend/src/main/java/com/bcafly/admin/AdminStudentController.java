@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/admin/students")
 @PreAuthorize("hasRole('ADMIN')")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class AdminStudentController {
 
     private final StudentRepository studentRepository;

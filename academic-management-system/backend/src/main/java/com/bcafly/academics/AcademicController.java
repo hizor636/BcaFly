@@ -7,7 +7,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/academics")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class AcademicController {
 
     private final AcademicYearRepository academicYearRepository;

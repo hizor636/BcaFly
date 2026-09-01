@@ -20,7 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/students")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class StudentController {
 
     private final StudentProfileRepository studentRepository;

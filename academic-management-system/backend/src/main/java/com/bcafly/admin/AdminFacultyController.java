@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/admin/faculty")
 @PreAuthorize("hasRole('ADMIN')")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class AdminFacultyController {
 
     private final FacultyMemberRepository facultyMemberRepository;

@@ -25,7 +25,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/student")
 @PreAuthorize("hasRole('STUDENT')")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class StudentDashboardController {
 
     private final StudentProfileRepository studentProfileRepository;

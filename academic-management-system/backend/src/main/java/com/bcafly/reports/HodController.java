@@ -20,7 +20,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/hod")
 @PreAuthorize("hasAnyRole('HOD', 'ADMIN')")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class HodController {
 
     private final StudentProfileRepository studentRepository;

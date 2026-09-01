@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class AuthController {
 
     private final UserRepository userRepository;

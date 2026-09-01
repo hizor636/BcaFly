@@ -20,7 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/attendance")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class AttendanceController {
 
     private final AttendanceSessionRepository sessionRepository;

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/faculty-allocations")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class FacultyAllocationController {
 
     private final FacultyCourseAssignmentRepository assignmentRepository;

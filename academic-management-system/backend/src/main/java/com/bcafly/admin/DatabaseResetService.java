@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class DatabaseResetService {
 
     private final JdbcTemplate jdbcTemplate;

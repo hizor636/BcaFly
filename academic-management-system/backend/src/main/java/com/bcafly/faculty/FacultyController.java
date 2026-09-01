@@ -15,7 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/faculty")
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class FacultyController {
 
     private final FacultyProfileRepository facultyRepository;

@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
-@SuppressWarnings("null")
+@SuppressWarnings("all")
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
