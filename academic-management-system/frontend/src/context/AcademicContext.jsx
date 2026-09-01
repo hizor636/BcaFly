@@ -42,6 +42,7 @@ import {
   loadBacklogRecords,
   saveBacklogRecords
 } from '../services/workspaceStore';
+import { generateUniversityStarterDataset } from '../services/dataIngestionEngine';
 
 const AcademicContext = createContext(null);
 
@@ -529,6 +530,99 @@ export const AcademicProvider = ({ children }) => {
     });
 
     logAction('Bulk Faculty Allocations Imported', `Imported ${allocationsList.length} faculty allocations into Semester ${sem} (Mode: ${mode}).`);
+  };
+
+  const ingestBulkAcademicData = (category, semesterId, data = [], mode = 'merge') => {
+    const sem = Number(semesterId) || activeSemester;
+    const count = data.length;
+
+    switch (category) {
+      case 'STUDENTS':
+        importStudents(sem, data, mode);
+        break;
+
+      case 'COURSES':
+        importCourses(sem, data, mode);
+        break;
+
+      case 'FACULTY':
+        importFacultyAssignments(sem, data, mode);
+        break;
+
+      case 'TIMETABLE':
+        setTimetableEntries(prev => {
+          if (mode === 'replace') {
+            const filtered = prev.filter(t => Number(t.semester || t.sem) !== sem);
+            return [...filtered, ...data.map(d => ({ ...d, semester: sem, sem }))];
+          }
+          const updated = [...prev];
+          data.forEach(item => {
+            const idx = updated.findIndex(t => Number(t.semester || t.sem) === sem && t.day === item.day && Number(t.period || t.periodNumber) === Number(item.period || item.periodNumber));
+            if (idx >= 0) {
+              if (mode === 'merge') updated[idx] = { ...updated[idx], ...item, semester: sem, sem };
+            } else {
+              updated.push({ ...item, semester: sem, sem });
+            }
+          });
+          return updated;
+        });
+        logAction('Timetable Data Ingested', `Ingested ${count} timetable entries for Semester ${sem} (Mode: ${mode}).`);
+        break;
+
+      case 'ATTENDANCE':
+        setDetailedAttendance(prev => {
+          const records = prev.records || [];
+          return {
+            ...prev,
+            records: mode === 'replace' ? data : [...data, ...records]
+          };
+        });
+        logAction('Attendance Ingested', `Ingested ${count} attendance logs for Semester ${sem}.`);
+        break;
+
+      case 'MARKS':
+        setAssessmentMarks(prev => {
+          if (mode === 'replace') return data;
+          const updated = [...prev];
+          data.forEach(m => {
+            const idx = updated.findIndex(x => x.reg === m.reg && x.courseCode === m.courseCode && x.component === m.component);
+            if (idx >= 0) {
+              if (mode === 'merge') updated[idx] = { ...updated[idx], ...m };
+            } else {
+              updated.push(m);
+            }
+          });
+          return updated;
+        });
+        logAction('Internal Marks Ingested', `Ingested ${count} CIE marks records for Semester ${sem}.`);
+        break;
+
+      case 'RESULTS':
+        setExamResults(prev => {
+          if (mode === 'replace') return data;
+          const updated = [...prev];
+          data.forEach(r => {
+            const idx = updated.findIndex(x => x.reg === r.reg && x.courseCode === r.courseCode);
+            if (idx >= 0) {
+              if (mode === 'merge') updated[idx] = { ...updated[idx], ...r };
+            } else {
+              updated.push(r);
+            }
+          });
+          return updated;
+        });
+        logAction('Exam Results Ingested', `Ingested ${count} end-semester exam result records for Semester ${sem}.`);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const loadUniversityStarterDataset = () => {
+    const starter = generateUniversityStarterDataset();
+    setSemesters(starter);
+    logAction('University Starter Dataset Loaded', 'Populated complete BCA 6-semester academic workspaces with courses and student rosters.');
   };
 
   const resetAcademicState = (mode, semesterId, academicYearId) => {
@@ -1603,6 +1697,8 @@ export const AcademicProvider = ({ children }) => {
         markAllNotificationsRead,
         uploadAcademicFiles,
         deleteAcademicFile,
+        ingestBulkAcademicData,
+        loadUniversityStarterDataset,
         logAction
       }}
     >

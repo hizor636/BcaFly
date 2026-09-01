@@ -13,6 +13,7 @@ const AdminAcademicRecordsPage = lazy(() => import('../features/admin/pages/Admi
 const AdminReportsPage = lazy(() => import('../features/admin/pages/AdminReportsPage').then(m => ({ default: m.AdminReportsPage })));
 const AdminAuditPage = lazy(() => import('../features/admin/pages/AdminAuditPage').then(m => ({ default: m.AdminAuditPage })));
 const AdminDatabaseResetPage = lazy(() => import('../features/admin/pages/AdminDatabaseResetPage').then(m => ({ default: m.AdminDatabaseResetPage })));
+const AdminDatabaseIngestionHub = lazy(() => import('../features/admin/pages/AdminDatabaseIngestionHub').then(m => ({ default: m.AdminDatabaseIngestionHub })));
 
 // HOD Pages (Lazy Loaded)
 const HodOverviewPage = lazy(() => import('../features/hod/pages/HodOverviewPage').then(m => ({ default: m.HodOverviewPage })));
@@ -93,6 +94,10 @@ export const router = createBrowserRouter([
       { path: 'admin/marks', element: <Navigate to="/admin/academic-records" replace /> },
       { path: 'admin/results', element: <Navigate to="/admin/academic-records" replace /> },
       { path: 'admin/activities', element: <Navigate to="/admin/academic-records" replace /> },
+      
+      // Universal Database Creation & Ingestion Hub
+      { path: 'admin/database-hub', element: <SuspenseWrapper><AdminDatabaseIngestionHub /></SuspenseWrapper> },
+      { path: 'admin/ingestion', element: <Navigate to="/admin/database-hub" replace /> },
       
       { path: 'admin/reports', element: <SuspenseWrapper><AdminReportsPage /></SuspenseWrapper> },
       { path: 'admin/audit', element: <SuspenseWrapper><AdminAuditPage /></SuspenseWrapper> },

@@ -6,6 +6,7 @@ export const PLATFORM_NAV = {
   ADMIN: [
     { title: 'SEMESTER WORKSPACE CONFIGURATION', isHeader: true },
     { path: '/admin/overview', label: 'Workspace Overview', icon: '📊' },
+    { path: '/admin/database-hub', label: 'Database & Ingestion Hub', icon: '⚡' },
     { path: '/admin/courses', label: 'Semester-Specific Courses', icon: '📚' },
     { path: '/admin/students', label: 'Semester Enrolment', icon: '🎓' },
     { path: '/admin/faculty', label: 'Assigned Faculty', icon: '👨‍🏫' },
