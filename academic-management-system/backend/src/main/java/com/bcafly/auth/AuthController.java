@@ -34,11 +34,28 @@ public class AuthController {
             ));
         }
 
+        // Prevent privilege escalation on public self-registration
+        User.Role assignedRole = User.Role.STUDENT;
+        if (request.role() != null && !request.role().isBlank()) {
+            String roleUpper = request.role().trim().toUpperCase();
+            if (roleUpper.equals("ADMIN") || roleUpper.equals("HOD")) {
+                return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Creation of ADMIN or HOD accounts requires administrative authorization."
+                ));
+            }
+            try {
+                assignedRole = User.Role.valueOf(roleUpper);
+            } catch (IllegalArgumentException e) {
+                assignedRole = User.Role.STUDENT;
+            }
+        }
+
         User user = User.builder()
                 .name(request.name())
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
-                .role(User.Role.valueOf(request.role().toUpperCase()))
+                .role(assignedRole)
                 .department("BCA")
                 .isActive(true)
                 .build();
