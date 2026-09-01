@@ -319,7 +319,7 @@ public class AdminStudentController {
 
             for (int i = 0; i < rawRows.size(); i++) {
                 totalRows++;
-                Map<String, String> row = rawRows[i];
+                Map<String, String> row = rawRows.get(i);
                 String rawUsn = row.get(usnHeader);
                 String rawName = row.get(nameHeader);
                 String rawSection = sectionHeader != null ? row.get(sectionHeader) : "A";

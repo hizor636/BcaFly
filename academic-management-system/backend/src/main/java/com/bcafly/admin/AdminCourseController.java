@@ -194,7 +194,7 @@ public class AdminCourseController {
 
             for (int i = 0; i < rawRows.size(); i++) {
                 totalRows++;
-                Map<String, String> row = rawRows[i];
+                Map<String, String> row = rawRows.get(i);
                 String rawCode = row.get(codeHeader);
                 String rawTitle = row.get(titleHeader);
                 String rawType = row.get(typeHeader);

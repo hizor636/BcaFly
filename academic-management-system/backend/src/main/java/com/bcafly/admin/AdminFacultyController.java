@@ -297,7 +297,7 @@ public class AdminFacultyController {
 
             for (int i = 0; i < rawRows.size(); i++) {
                 totalRows++;
-                Map<String, String> row = rawRows[i];
+                Map<String, String> row = rawRows.get(i);
                 String rawFacCode = row.get(facIdHeader);
                 String rawFacName = facNameHeader != null ? row.get(facNameHeader) : "Faculty " + rawFacCode;
                 String rawCourseCode = row.get(courseCodeHeader);

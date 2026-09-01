@@ -11,6 +11,10 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
     List<Subject> findBySemesterNumberAndAcademicYearIdAndIsActiveTrue(Integer semesterNumber, String academicYearId);
     Optional<Subject> findBySemesterNumberAndAcademicYearIdAndCode(Integer semesterNumber, String academicYearId, String code);
     
+    default List<Subject> findBySemesterIdAndAcademicYearId(Integer semesterId, String academicYearId) {
+        return findBySemesterNumberAndAcademicYearIdAndIsActiveTrue(semesterId, academicYearId);
+    }
+
     @Transactional
     void deleteBySemesterNumberAndAcademicYearId(Integer semesterNumber, String academicYearId);
 }

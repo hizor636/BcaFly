@@ -67,4 +67,6 @@ public class StudentProfile {
     public void setAttendancePct(BigDecimal attendancePct) { this.attendancePct = attendancePct; }
     public String getRiskStatus() { return riskStatus; }
     public void setRiskStatus(String riskStatus) { this.riskStatus = riskStatus; }
+    public Long getCurrentSemesterId() { return currentSemester != null ? currentSemester.getId() : null; }
+    public Long getSectionId() { return section != null ? section.getId() : null; }
 }
