@@ -2,13 +2,13 @@ spring:
   application:
     name: bcafly-backend
   profiles:
-    active: mysql
+    active: postgresql
 
   datasource:
-    url: jdbc:mysql://localhost:3306/bcafly_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: root
-    password: "hizor"
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bcafly_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:hizor}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
@@ -16,7 +16,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
   flyway:
@@ -24,15 +24,15 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 25MB
+      max-request-size: 25MB
 
 server:
   port: 8080
 
 app:
   jwt:
-    secret: BcaFlySecretKey2026ChangeThisInProduction
+    secret: ${JWT_SECRET:BcaFlySecretKey2026ChangeThisInProductionRobustSecureKey32Bytes}
     expiration-ms: 86400000  # 24 hours
   storage:
     upload-dir: ../storage/uploads
