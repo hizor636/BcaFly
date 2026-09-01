@@ -19,6 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/portfolio")
+@SuppressWarnings("null")
 public class PortfolioController {
 
     private final StudentEventSubmissionRepository submissionRepository;

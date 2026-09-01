@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,11 +38,9 @@ public class SecureFileUploadService {
     private String uploadDir;
 
     private final AuditService auditService;
-    private final ScopeValidator scopeValidator;
 
-    public SecureFileUploadService(AuditService auditService, ScopeValidator scopeValidator) {
+    public SecureFileUploadService(AuditService auditService) {
         this.auditService = auditService;
-        this.scopeValidator = scopeValidator;
     }
 
     public StoredFileResult storeFile(MultipartFile file, String contextType, Long contextId) throws IOException {

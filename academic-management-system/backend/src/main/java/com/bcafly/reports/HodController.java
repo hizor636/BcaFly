@@ -1,8 +1,5 @@
 package com.bcafly.reports;
 
-import com.bcafly.academics.Subject;
-import com.bcafly.academics.SubjectRepository;
-import com.bcafly.faculty.FacultyProfileRepository;
 import com.bcafly.marks.InternalMark;
 import com.bcafly.marks.InternalMarkRepository;
 import com.bcafly.portfolio.OdRequest;
@@ -23,27 +20,22 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/hod")
 @PreAuthorize("hasAnyRole('HOD', 'ADMIN')")
+@SuppressWarnings("null")
 public class HodController {
 
     private final StudentProfileRepository studentRepository;
-    private final FacultyProfileRepository facultyRepository;
     private final InternalMarkRepository markRepository;
     private final StudentEventSubmissionRepository submissionRepository;
     private final OdRequestRepository odRepository;
-    private final SubjectRepository subjectRepository;
 
     public HodController(StudentProfileRepository studentRepository,
-                         FacultyProfileRepository facultyRepository,
                          InternalMarkRepository markRepository,
                          StudentEventSubmissionRepository submissionRepository,
-                         OdRequestRepository odRepository,
-                         SubjectRepository subjectRepository) {
+                         OdRequestRepository odRepository) {
         this.studentRepository = studentRepository;
-        this.facultyRepository = facultyRepository;
         this.markRepository = markRepository;
         this.submissionRepository = submissionRepository;
         this.odRepository = odRepository;
-        this.subjectRepository = subjectRepository;
     }
 
     @GetMapping("/overview")

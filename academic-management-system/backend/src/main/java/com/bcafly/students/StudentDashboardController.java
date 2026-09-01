@@ -4,7 +4,6 @@ import com.bcafly.academics.Subject;
 import com.bcafly.academics.SubjectRepository;
 import com.bcafly.announcements.Announcement;
 import com.bcafly.announcements.AnnouncementRepository;
-import com.bcafly.attendance.StudentAttendanceRepository;
 import com.bcafly.common.ScopeValidator;
 import com.bcafly.marks.InternalMark;
 import com.bcafly.marks.InternalMarkRepository;
@@ -26,24 +25,22 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/student")
 @PreAuthorize("hasRole('STUDENT')")
+@SuppressWarnings("null")
 public class StudentDashboardController {
 
     private final StudentProfileRepository studentProfileRepository;
     private final SubjectRepository subjectRepository;
-    private final StudentAttendanceRepository attendanceRepository;
     private final InternalMarkRepository internalMarkRepository;
     private final AnnouncementRepository announcementRepository;
     private final ScopeValidator scopeValidator;
 
     public StudentDashboardController(StudentProfileRepository studentProfileRepository,
                                       SubjectRepository subjectRepository,
-                                      StudentAttendanceRepository attendanceRepository,
                                       InternalMarkRepository internalMarkRepository,
                                       AnnouncementRepository announcementRepository,
                                       ScopeValidator scopeValidator) {
         this.studentProfileRepository = studentProfileRepository;
         this.subjectRepository = subjectRepository;
-        this.attendanceRepository = attendanceRepository;
         this.internalMarkRepository = internalMarkRepository;
         this.announcementRepository = announcementRepository;
         this.scopeValidator = scopeValidator;

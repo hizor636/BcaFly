@@ -4,8 +4,6 @@ import com.bcafly.academics.Subject;
 import com.bcafly.academics.SubjectRepository;
 import com.bcafly.academics.UploadedDocument;
 import com.bcafly.academics.UploadedDocumentRepository;
-import com.bcafly.academics.FacultyAssignment;
-import com.bcafly.academics.FacultyAssignmentRepository;
 import com.bcafly.common.AuditService;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.http.ResponseEntity;
@@ -16,18 +14,16 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
+@SuppressWarnings("null")
 public class AdminCourseController {
 
     private final SubjectRepository subjectRepository;
-    private final FacultyAssignmentRepository facultyAssignmentRepository;
     private final UploadedDocumentRepository uploadedDocumentRepository;
     private final AuditService auditService;
 
@@ -36,11 +32,9 @@ public class AdminCourseController {
     private final Map<String, String> fileNameCache = new ConcurrentHashMap<>();
 
     public AdminCourseController(SubjectRepository subjectRepository,
-                                 FacultyAssignmentRepository facultyAssignmentRepository,
                                  UploadedDocumentRepository uploadedDocumentRepository,
                                  AuditService auditService) {
         this.subjectRepository = subjectRepository;
-        this.facultyAssignmentRepository = facultyAssignmentRepository;
         this.uploadedDocumentRepository = uploadedDocumentRepository;
         this.auditService = auditService;
     }
@@ -204,8 +198,6 @@ public class AdminCourseController {
 
                 List<String> errors = new ArrayList<>();
                 List<String> warnings = new ArrayList<>();
-                String status = "ready";
-
                 if (rawCode == null || rawCode.isBlank()) {
                     errors.add("Course Code is required.");
                 }

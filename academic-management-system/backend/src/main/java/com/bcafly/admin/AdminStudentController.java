@@ -16,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -24,6 +23,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/admin/students")
 @PreAuthorize("hasRole('ADMIN')")
+@SuppressWarnings("null")
 public class AdminStudentController {
 
     private final StudentRepository studentRepository;
@@ -332,8 +332,6 @@ public class AdminStudentController {
 
                 List<String> errors = new ArrayList<>();
                 List<String> warnings = new ArrayList<>();
-                String status = "ready";
-
                 if (rawUsn == null || rawUsn.isBlank()) errors.add("USN/Register Number is required.");
                 if (rawName == null || rawName.isBlank()) errors.add("Student Name is required.");
 

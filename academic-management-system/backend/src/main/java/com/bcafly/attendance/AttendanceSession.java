@@ -4,7 +4,6 @@ import com.bcafly.academics.Section;
 import com.bcafly.academics.Semester;
 import com.bcafly.academics.Subject;
 import com.bcafly.faculty.FacultyProfile;
-import com.bcafly.students.StudentProfile;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

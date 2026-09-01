@@ -1,6 +1,5 @@
 package com.bcafly.admin;
 
-import com.bcafly.common.AuditService;
 import com.bcafly.common.ScopeValidator;
 import com.bcafly.users.User;
 import org.springframework.http.ResponseEntity;
@@ -16,14 +15,11 @@ public class DatabaseResetController {
 
     private final DatabaseResetService resetService;
     private final ScopeValidator scopeValidator;
-    private final AuditService auditService;
 
     public DatabaseResetController(DatabaseResetService resetService,
-                                   ScopeValidator scopeValidator,
-                                   AuditService auditService) {
+                                   ScopeValidator scopeValidator) {
         this.resetService = resetService;
         this.scopeValidator = scopeValidator;
-        this.auditService = auditService;
     }
 
     /**

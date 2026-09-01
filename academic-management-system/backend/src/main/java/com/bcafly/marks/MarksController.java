@@ -19,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/marks")
+@SuppressWarnings("null")
 public class MarksController {
 
     private final InternalMarkRepository markRepository;
