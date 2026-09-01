@@ -282,3 +282,10 @@ INSERT INTO sections (id, semester_id, name) VALUES
 (3, 3, 'A'), (4, 3, 'B'),
 (5, 5, 'A'), (6, 5, 'B')
 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
+
+-- 8. SYNCHRONIZE SEQUENCES (Ensures auto-increment works smoothly after manual ID inserts)
+SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE((SELECT MAX(id) FROM users), 1));
+SELECT setval(pg_get_serial_sequence('academic_years', 'id'), COALESCE((SELECT MAX(id) FROM academic_years), 1));
+SELECT setval(pg_get_serial_sequence('semesters', 'id'), COALESCE((SELECT MAX(id) FROM semesters), 1));
+SELECT setval(pg_get_serial_sequence('sections', 'id'), COALESCE((SELECT MAX(id) FROM sections), 1));
+
